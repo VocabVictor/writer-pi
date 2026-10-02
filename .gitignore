@@ -44,9 +44,11 @@ plans/
 collect.sh
 packages/agent/docs/extensions/pi-server-artifact/index.md
 
-# writer-pi: per-project run artifacts (created by the writing flow)
+# writer-pi: per-project run artifacts (created by the writing flow);
+# voice/ is NOT ignored — 03-voice ships a style sample there
 examples/writing/*/drafts/
 examples/writing/*/reviews/
 examples/writing/*/state.json
 examples/writing/*/locked.md
-examples/writing/*/voice/
+examples/writing/*/brief.md
+!examples/writing/01-draft-email/brief.md
