@@ -1,0 +1,412 @@
+/**
+ * Writing flow state machine (写作流程的代码保证)。
+ *
+ *   起草/修改起始轮 → 程序检查 → 语义检查(模型, 只输出JSON) → 局部修改轮 → 复核 → …
+ *
+ * 保证（不依赖提示词）：
+ * - 初稿先落盘再进入检查（模型没调 save_draft 时从回复兜底保存）。
+ * - 每个版本与每次检查意见都作为文件保存，版本从不覆盖。
+ * - 默认最多两轮局部修改，之后无条件收尾（退出条件：无有效问题 / 达到轮数上限 /
+ *   检查输出两次无法解析 / 用户中止）。
+ * - 修改轮只允许 revise_paragraph 工具，段落替换校验当前版本原文。
+ * - 修改后重新执行锁定原句等程序检查并复核。
+ *
+ * IO 通过 FlowIO 注入，便于用 mock 模型驱动做自动化测试。
+ */
+
+import { ensureProject, readState, readProjectFile, listTextFiles, writeState, writeFile, BRIEF_FILE } from "./project.ts";
+import { readDraft, saveDraft, setStage } from "./versions.ts";
+import { validateReview } from "./review-validate.ts";
+import { formatProgramSummary } from "./checker.ts";
+import { loadWriterContext, persistReviewFile, prepareReviewRound, readSourceTexts } from "./flow-review.ts";
+import {
+	stripFences,
+	buildDraftInstruction,
+	buildReviseStartInstruction,
+	buildReviseRoundInstruction,
+	buildFormatRetryInstruction,
+} from "./prompts.ts";
+import type { WriterMode, WriterStage } from "./types.ts";
+
+export const MAX_REVISION_ROUNDS = 2;
+const VOICE_SAMPLE_LIMIT = 8000;
+const MIN_FALLBACK_DRAFT_CHARS = 30;
+
+export interface FlowIO {
+	sendUserMessage(text: string): void;
+	setActiveTools(names: string[]): void;
+	notify(message: string, type?: "info" | "warning" | "error"): void;
+	/** Final flow summary, rendered to the user but not fed back to the model. */
+	summary(markdown: string): void;
+}
+
+export interface StartOptions {
+	/** /revise /voice 修改模式下的基稿：项目内相对路径或绝对路径。 */
+	baseDraftPath?: string;
+	/** voice 模式修改当前稿时为 true。 */
+	voiceRevise?: boolean;
+}
+
+export class WritingFlow {
+	readonly root: string;
+	stage: WriterStage = "idle";
+	mode: WriterMode | null = null;
+	request: string | null = null;
+	round = 0;
+	formatRetried = false;
+	revisionRoundsUsed = 0;
+	currentDraftPath: string | null = null;
+	private io: FlowIO;
+	private roundStartDraftCount = 0;
+	private revisionSnapshot: string | null = null;
+	private snapshotDirty = false;
+	private roundSummaries: string[] = [];
+
+	constructor(root: string, io: FlowIO) {
+		this.root = root;
+		this.io = io;
+	}
+
+	get isActive(): boolean {
+		return this.stage !== "idle";
+	}
+
+	// =========================================================================
+	// Starting a flow
+	// =========================================================================
+
+	async start(mode: WriterMode, request: string, options?: StartOptions): Promise<boolean> {
+		if (this.isActive) {
+			this.io.notify("已有一个写作流程在进行中。先等待它结束，或中止当前流程。", "warning");
+			return false;
+		}
+		const trimmed = request.trim();
+		if (!trimmed) {
+			this.io.notify("用法：/draft <写作要求>、/revise [文稿路径] <修改要求>、/voice <写作要求>", "warning");
+			return false;
+		}
+		this.mode = mode;
+		this.request = trimmed;
+		this.round = 0;
+		this.formatRetried = false;
+		this.revisionRoundsUsed = 0;
+		this.roundSummaries = [];
+		this.revisionSnapshot = null;
+		this.snapshotDirty = false;
+
+		await ensureProject(this.root);
+		const state = await readState(this.root);
+		this.roundStartDraftCount = state.draftCount;
+		this.currentDraftPath = state.currentDraft;
+
+		if (mode === "revise" || (mode === "voice" && options?.voiceRevise)) {
+			const base = await this.resolveBaseDraft(options?.baseDraftPath);
+			if (!base) {
+				this.io.notify(
+					"没有可修改的文稿：项目里还没有任何版本。先用 /draft 起草，或把稿件放进 drafts/ 或 sources/ 后用 /revise <文件路径> <要求>。",
+					"error",
+				);
+				this.stage = "idle";
+				this.mode = null;
+				return false;
+			}
+			this.currentDraftPath = base.path;
+			const ctx = await loadWriterContext(this.root);
+			const instruction = buildReviseStartInstruction({
+				request: trimmed,
+				draftPath: base.path,
+				draftText: base.text,
+				briefText: ctx.briefText,
+				lockedSentences: ctx.lockedSentences,
+			});
+			this.stage = "drafting";
+			this.io.setActiveTools(["read", "save_draft", "revise_paragraph"]);
+			this.io.sendUserMessage(instruction);
+		} else {
+			// draft, or voice drafting a new piece. A brief without real content is seeded with the request.
+			const ctx = await loadWriterContext(this.root);
+			let briefCreated = false;
+			if (ctx.briefWasEmpty) {
+				await writeFile(`${this.root}/${BRIEF_FILE}`, `# 写作要求\n\n${trimmed}\n`);
+				briefCreated = true;
+				ctx.briefText = `# 写作要求\n\n${trimmed}`;
+			}
+			const voiceFiles = mode === "voice" ? await this.loadVoiceFiles() : [];
+			const instruction = buildDraftInstruction({
+				request: trimmed,
+				mode: mode === "voice" ? "voice" : "draft",
+				briefText: ctx.briefText,
+				lockedSentences: ctx.lockedSentences,
+				sourceFiles: ctx.sourceFiles,
+				voiceFiles,
+				briefCreated,
+			});
+			this.stage = "drafting";
+			this.io.setActiveTools(["read", "save_draft"]);
+			this.io.sendUserMessage(instruction);
+		}
+		await this.persistStage();
+		return true;
+	}
+
+	private async loadVoiceFiles(limit = VOICE_SAMPLE_LIMIT): Promise<{ path: string; name: string; content: string }[]> {
+		const files = await listTextFiles(this.root, "voice");
+		const loaded: { path: string; name: string; content: string }[] = [];
+		for (const f of files) {
+			const content = await readProjectFile(this.root, f.path);
+			if (content === null) continue;
+			const trimmed = content.trim();
+			loaded.push({
+				path: f.path,
+				name: f.name,
+				content: trimmed.length > limit ? `${trimmed.slice(0, limit)}（截断）` : trimmed,
+			});
+		}
+		return loaded;
+	}
+
+	/** Resolve the manuscript a revise flow should operate on. */
+	private async resolveBaseDraft(baseDraftPath?: string): Promise<{ path: string; text: string } | null> {
+		const state = await readState(this.root);
+		if (baseDraftPath) {
+			if (!baseDraftPath.startsWith("drafts/")) {
+				// Outside drafts/: import it as the baseline version (original file untouched).
+				const content = await readProjectFile(this.root, baseDraftPath);
+				if (content === null) {
+					this.io.notify(`找不到文件：${baseDraftPath}（按项目根目录 ${this.root} 解析）`, "error");
+					return null;
+				}
+				const saved = await saveDraft(this.root, content, `imported from ${baseDraftPath} as revise baseline`);
+				return { path: saved.path, text: content };
+			}
+			const content = await readDraft(this.root, baseDraftPath);
+			if (content === null) {
+				this.io.notify(`找不到文稿：${baseDraftPath}`, "error");
+				return null;
+			}
+			return { path: baseDraftPath, text: content };
+		}
+		if (state.currentDraft) {
+			const content = await readDraft(this.root, state.currentDraft);
+			if (content !== null) return { path: state.currentDraft, text: content };
+		}
+		return null;
+	}
+
+	// =========================================================================
+	// Tool hooks (called from the core writing tools)
+	// =========================================================================
+
+	async toolSaveDraft(content: string, note?: string): Promise<{ path: string; version: number }> {
+		const saved = await saveDraft(this.root, stripFences(content), note);
+		this.currentDraftPath = saved.path;
+		return { path: saved.path, version: saved.version };
+	}
+
+	async toolApplyParagraphEdit(
+		original: string,
+		replacement: string,
+	): Promise<{ ok: true; message: string } | { ok: false; message: string }> {
+		if (this.stage !== "revising" || this.revisionSnapshot === null) {
+			return { ok: false, message: "revise_paragraph 只能在修改轮使用（当前没有打开的修改快照）" };
+		}
+		const wanted = original.replace(/\r\n/g, "\n").trim();
+		if (!wanted) return { ok: false, message: "original 不能为空" };
+		const snapshot = this.revisionSnapshot;
+		const count = countOccurrences(snapshot, wanted);
+		if (count === 0) {
+			// Retry with paragraph-trimmed variant (line-ending / surrounding whitespace differences).
+			const normalized = snapshot
+				.replace(/\r\n/g, "\n")
+				.split(/\n\s*\n/)
+				.map((p) => p.trim())
+				.filter((p) => p.length > 0)
+				.join("\n\n");
+			if (countOccurrences(normalized, wanted) === 1) {
+				this.revisionSnapshot = normalized.replace(wanted, replacement.replace(/\r\n/g, "\n").trim());
+				this.snapshotDirty = true;
+				return { ok: true, message: "已替换（归一化匹配）。" };
+			}
+			return {
+				ok: false,
+				message:
+					"original 在当前文稿中找不到（必须逐字复制要修改的段落，包括标点）。先调用 read 读取当前文稿，再原样引用要修改的段落。",
+			};
+		}
+		if (count > 1) {
+			return { ok: false, message: `original 在当前文稿中出现 ${count} 次，无法唯一定位。请包含更多上下文使其唯一。` };
+		}
+		this.revisionSnapshot = snapshot.replace(wanted, replacement.replace(/\r\n/g, "\n").trim());
+		this.snapshotDirty = true;
+		return { ok: true, message: "已替换。" };
+	}
+
+	// =========================================================================
+	// Stage transitions
+	// =========================================================================
+
+	async onAgentEnd(assistantText: string | undefined): Promise<void> {
+		if (this.stage === "drafting") await this.finishDraftingRound(assistantText);
+		else if (this.stage === "reviewing") await this.finishReviewingRound(assistantText);
+		else if (this.stage === "revising") await this.finishRevisingRound(assistantText);
+	}
+
+	private async finishDraftingRound(assistantText: string | undefined): Promise<void> {
+		const state = await readState(this.root);
+		const savedThisRound = state.draftCount > this.roundStartDraftCount;
+		if (!savedThisRound || !this.currentDraftPath) {
+			const fallback = assistantText ? stripFences(assistantText) : "";
+			if (fallback.length >= MIN_FALLBACK_DRAFT_CHARS) {
+				const saved = await saveDraft(this.root, fallback, "fallback: 模型未调用 save_draft，已从回复中保存初稿");
+				this.currentDraftPath = saved.path;
+				this.io.notify(`模型未调用保存工具，已将其回复保存为 ${saved.path}`, "warning");
+			} else {
+				this.io.notify("起草轮没有产出可保存的文稿（模型未保存且回复过短）。流程结束，未生成新版本。", "error");
+				await this.finish("起草失败：没有产出文稿。");
+				return;
+			}
+		}
+		await this.beginReviewRound();
+	}
+
+	private async beginReviewRound(): Promise<void> {
+		if (!this.currentDraftPath) {
+			await this.finish("内部错误：没有当前文稿。");
+			return;
+		}
+		const prep = await prepareReviewRound(this.root, this.currentDraftPath, this.round + 1);
+		this.stage = "reviewing";
+		this.io.setActiveTools([]);
+		this.io.sendUserMessage(prep.instruction);
+		await this.persistStage();
+	}
+
+	private async finishReviewingRound(assistantText: string | undefined): Promise<void> {
+		if (!this.currentDraftPath) {
+			await this.finish("内部错误：没有当前文稿。");
+			return;
+		}
+		const draftPath = this.currentDraftPath;
+		const draftText = (await readDraft(this.root, draftPath)) ?? "";
+		const prep = await prepareReviewRound(this.root, draftPath, this.round + 1);
+		const validation = validateReview(assistantText ?? "", draftText, { sourceTexts: await readSourceTexts(this.root) });
+
+		if (!validation.ok) {
+			if (!this.formatRetried) {
+				this.formatRetried = true;
+				this.io.notify("检查输出格式无效，允许一次格式纠正重试", "warning");
+				this.io.sendUserMessage(buildFormatRetryInstruction(validation.errors));
+				return;
+			}
+			const review = await persistReviewFile(this.root, {
+				round: this.round + 1,
+				draftPath,
+				programChecks: prep.programChecks,
+				issues: [],
+				validationWarnings: validation.errors,
+				rawModelOutput: (assistantText ?? "").slice(0, 8000),
+			});
+			await this.finish(
+				`模型检查输出两次无法解析，已保留当前文稿 \`${draftPath}\`，程序检查线索与原始输出存于 \`${review}\`。\n\n${formatProgramSummary(prep.programChecks)}`,
+			);
+			return;
+		}
+
+		const review = await persistReviewFile(this.root, {
+			round: this.round + 1,
+			draftPath,
+			programChecks: prep.programChecks,
+			issues: validation.issues,
+			validationWarnings: validation.warnings,
+		});
+
+		if (validation.issues.length === 0) {
+			await this.finish(
+				`第 ${this.round + 1} 轮检查未发现问题，保留原稿 \`${draftPath}\`。\n\n${formatProgramSummary(prep.programChecks)}\n检查意见：\`${review}\``,
+			);
+			return;
+		}
+		if (this.round >= MAX_REVISION_ROUNDS) {
+			await this.finish(
+				`已达 ${MAX_REVISION_ROUNDS} 轮修改上限，保留当前文稿 \`${draftPath}\`。\n\n${formatProgramSummary(prep.programChecks)}\n本轮检查意见：\`${review}\``,
+			);
+			return;
+		}
+		this.revisionSnapshot = draftText;
+		this.snapshotDirty = false;
+		this.stage = "revising";
+		this.io.setActiveTools(["read", "revise_paragraph"]);
+		this.io.sendUserMessage(
+			buildReviseRoundInstruction({
+				draftPath,
+				draftText,
+				issues: validation.issues,
+				reviewPath: review,
+				round: this.round + 1,
+			}),
+		);
+		await this.persistStage();
+	}
+
+	private async finishRevisingRound(assistantText: string | undefined): Promise<void> {
+		if (assistantText && assistantText.trim().length > 0) {
+			this.roundSummaries.push(assistantText.trim().slice(0, 2000));
+		}
+		if (!this.snapshotDirty || this.revisionSnapshot === null) {
+			await this.finish(
+				`模型在第 ${this.round + 1} 轮没有产生任何修改，保留当前文稿 \`${this.currentDraftPath}\`。检查意见已保存，可自行查看后再用 /revise 处理。`,
+			);
+			return;
+		}
+		const saved = await saveDraft(this.root, this.revisionSnapshot, `第 ${this.round + 1} 轮修改`);
+		this.currentDraftPath = saved.path;
+		this.revisionSnapshot = null;
+		this.snapshotDirty = false;
+		this.round += 1;
+		this.revisionRoundsUsed = this.round;
+		this.io.notify(`第 ${this.round} 轮修改已保存为 ${saved.path}`);
+		await this.beginReviewRound();
+	}
+
+	// =========================================================================
+	// Wrap-up
+	// =========================================================================
+
+	async abort(): Promise<void> {
+		if (!this.isActive) return;
+		this.stage = "idle";
+		this.revisionSnapshot = null;
+		this.snapshotDirty = false;
+		await this.persistStage();
+		this.io.summary("写作流程已中止。已保存的版本仍保留在 drafts/ 中，可随时用 /drafts 查看。");
+	}
+
+	private async finish(summaryText: string): Promise<void> {
+		this.stage = "idle";
+		this.revisionSnapshot = null;
+		this.snapshotDirty = false;
+		await this.persistStage();
+		const extras: string[] = [];
+		if (this.roundSummaries.length > 0) {
+			extras.push(`**修改摘要**\n${this.roundSummaries.map((s) => `- ${s.replace(/\n+/g, " ")}`).join("\n")}`);
+		}
+		extras.push(`当前版本：\`${this.currentDraftPath ?? "无"}\`。用 /drafts 列出全部版本，/diff 对比，/revert <版本> 回退。`);
+		this.io.summary([summaryText, ...extras].join("\n\n"));
+	}
+
+	private async persistStage(): Promise<void> {
+		const state = await setStage(this.root, this.stage, this.mode ?? undefined, this.request ?? undefined);
+		state.revisionRounds = this.round;
+		await writeState(this.root, state);
+	}
+}
+
+function countOccurrences(haystack: string, needle: string): number {
+	let count = 0;
+	let idx = haystack.indexOf(needle);
+	while (idx !== -1) {
+		count += 1;
+		idx = haystack.indexOf(needle, idx + needle.length);
+	}
+	return count;
+}
