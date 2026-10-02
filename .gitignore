@@ -43,3 +43,10 @@ plans/
 .pi/hf-sessions-backup/
 collect.sh
 packages/agent/docs/extensions/pi-server-artifact/index.md
+
+# writer-pi: per-project run artifacts (created by the writing flow)
+examples/writing/*/drafts/
+examples/writing/*/reviews/
+examples/writing/*/state.json
+examples/writing/*/locked.md
+examples/writing/*/voice/
