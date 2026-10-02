@@ -4,6 +4,7 @@
  */
 
 import * as crypto from "node:crypto";
+import { writerRuntime } from "../../writer/runtime.ts";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
@@ -1942,6 +1943,13 @@ export class InteractiveMode {
 	 */
 	private async bindCurrentSessionExtensions(): Promise<void> {
 		const uiContext = this.createExtensionUIContext();
+		// writer-pi: give the core writing flow access to TUI notify/select/widget.
+		writerRuntime.setUI({
+			notify: (message, type) => this.showExtensionNotify(message, type),
+			select: (title, options) => this.showExtensionSelector(title, options),
+			setWidget: (lines) => this.setExtensionWidget("writer", lines),
+		});
+		await writerRuntime.onSessionStart();
 		await this.session.bindExtensions({
 			uiContext,
 			mode: "tui",

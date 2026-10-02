@@ -88,11 +88,30 @@ import { createGrepTool, createGrepToolDefinition, type GrepToolOptions } from "
 import { createLsTool, createLsToolDefinition, type LsToolOptions } from "./ls.ts";
 import { createPowerShellTool, createPowerShellToolDefinition, type PowerShellToolOptions } from "./powershell.ts";
 import { createReadTool, createReadToolDefinition, type ReadToolOptions } from "./read.ts";
+import {
+	createSaveDraftToolDefinition,
+	createReviseParagraphToolDefinition,
+	createDiffVersionsToolDefinition,
+	createRevertVersionToolDefinition,
+} from "./writer.ts";
+import { wrapToolDefinition } from "./tool-definition-wrapper.ts";
 import { createWriteTool, createWriteToolDefinition, type WriteToolOptions } from "./write.ts";
 
 export type Tool = AgentTool<any>;
 export type ToolDef = ToolDefinition<any, any>;
-export type ToolName = "read" | "bash" | "powershell" | "edit" | "write" | "grep" | "find" | "ls";
+export type ToolName =
+	| "read"
+	| "bash"
+	| "powershell"
+	| "edit"
+	| "write"
+	| "grep"
+	| "find"
+	| "ls"
+	| "save_draft"
+	| "revise_paragraph"
+	| "diff_versions"
+	| "revert_version";
 export const allToolNames: Set<ToolName> = new Set([
 	"read",
 	"bash",
@@ -102,6 +121,10 @@ export const allToolNames: Set<ToolName> = new Set([
 	"grep",
 	"find",
 	"ls",
+	"save_draft",
+	"revise_paragraph",
+	"diff_versions",
+	"revert_version",
 ]);
 
 export interface ToolsOptions {
@@ -182,6 +205,10 @@ export function createReadOnlyToolDefinitions(cwd: string, options?: ToolsOption
 export function createAllToolDefinitions(cwd: string, options?: ToolsOptions): Record<ToolName, ToolDef> {
 	return {
 		read: createReadToolDefinition(cwd, options?.read),
+		save_draft: createSaveDraftToolDefinition(cwd),
+		revise_paragraph: createReviseParagraphToolDefinition(cwd),
+		diff_versions: createDiffVersionsToolDefinition(cwd),
+		revert_version: createRevertVersionToolDefinition(cwd),
 		bash: createBashToolDefinition(cwd, options?.bash),
 		powershell: createPowerShellToolDefinition(cwd, options?.powershell),
 		edit: createEditToolDefinition(cwd, options?.edit),
@@ -191,6 +218,8 @@ export function createAllToolDefinitions(cwd: string, options?: ToolsOptions): R
 		ls: createLsToolDefinition(cwd, options?.ls),
 	};
 }
+
+export { createWriterTools } from "./writer.ts";
 
 export function createCodingTools(cwd: string, options?: ToolsOptions): Tool[] {
 	return [
@@ -213,6 +242,10 @@ export function createReadOnlyTools(cwd: string, options?: ToolsOptions): Tool[]
 export function createAllTools(cwd: string, options?: ToolsOptions): Record<ToolName, Tool> {
 	return {
 		read: createReadTool(cwd, options?.read),
+		save_draft: wrapToolDefinition(createSaveDraftToolDefinition(cwd)),
+		revise_paragraph: wrapToolDefinition(createReviseParagraphToolDefinition(cwd)),
+		diff_versions: wrapToolDefinition(createDiffVersionsToolDefinition(cwd)),
+		revert_version: wrapToolDefinition(createRevertVersionToolDefinition(cwd)),
 		bash: createBashTool(cwd, options?.bash),
 		powershell: createPowerShellTool(cwd, options?.powershell),
 		edit: createEditTool(cwd, options?.edit),

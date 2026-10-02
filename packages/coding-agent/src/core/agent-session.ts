@@ -114,6 +114,7 @@ import {
 } from "./extensions/index.ts";
 import { emitSessionShutdownEvent } from "./extensions/runner.ts";
 import { type BashExecutionMessage, type CustomMessage, convertToLlm } from "./messages.ts";
+import { writerRuntime } from "../writer/runtime.ts";
 import { ModelRegistry } from "./model-registry.ts";
 import type { ModelRuntime } from "./model-runtime.ts";
 import { NestedToolCallRunner } from "./nested-tool-calls.ts";
@@ -495,6 +496,21 @@ export class AgentSession {
 			includeAllExtensionTools: true,
 		});
 		if (this._initialActiveToolNames === undefined) this._restoreToolsFromTranscript();
+
+		// writer-pi: bind the writing flow to this session (core wiring, not an extension).
+		writerRuntime.attachSession({
+			cwd: this._cwd,
+			isIdle: () => this.isIdle,
+			setActiveToolsByName: (toolNames) => this.setActiveToolsByName(toolNames),
+			sendMessage: (message) => void this.sendCustomMessage(message),
+			sendFlowMessage: (text) =>
+				this.sendCustomMessage(
+					{ customType: "writer_flow", content: text, display: false },
+					{ triggerTurn: true, deliverAs: "followUp" },
+				).catch((err) => {
+					console.error(`[writer] ${err instanceof Error ? err.message : String(err)}`);
+				}),
+		});
 	}
 
 	get modelRuntime(): ModelRuntime {
@@ -1257,6 +1273,7 @@ export class AgentSession {
 			this._turnIndex = 0;
 			await this._extensionRunner.emit({ type: "agent_start" });
 		} else if (event.type === "agent_end") {
+			await writerRuntime.handleAgentEnd(event.messages as { role: string; content: unknown }[]);
 			await this._extensionRunner.emit({ type: "agent_end", messages: event.messages });
 		} else if (event.type === "turn_start") {
 			const extensionEvent: TurnStartEvent = {
@@ -1925,6 +1942,15 @@ export class AgentSession {
 		}
 		const expandPromptTemplates = options?.expandPromptTemplates ?? true;
 		const preflightResult = options?.preflightResult;
+		// writer-pi core writing commands (/draft /revise /voice /writing /drafts /diff /revert)
+		if (expandPromptTemplates && text.startsWith("/")) {
+			const handled = await writerRuntime.handleCommand(text);
+			if (handled) {
+				preflightResult?.("handled");
+				return;
+			}
+		}
+
 		// Handle extension commands first (execute immediately, even during streaming)
 		// Extension commands manage their own LLM interaction via pi.sendMessage()
 		if (expandPromptTemplates && text.startsWith("/")) {

@@ -1,12 +1,14 @@
 {
 	"name": "@earendil-works/pi-coding-agent",
 	"version": "1.0.0",
-	"description": "Coding agent CLI with read, bash, edit, write tools and session management",
+	"description": "writer-pi: writing agent (drafting, revising, voice) built on the Pi coding agent harness",
 	"type": "module",
 	"piConfig": {
+		"name": "writer-pi",
 		"configDir": ".pi"
 	},
 	"bin": {
+		"writer-pi": "dist/bundle/cli.js",
 		"pi": "dist/bundle/cli.js"
 	},
 	"main": "./dist/index.js",

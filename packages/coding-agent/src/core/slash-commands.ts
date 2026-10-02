@@ -17,6 +17,13 @@ export interface BuiltinSlashCommand {
 }
 
 export const BUILTIN_SLASH_COMMANDS: ReadonlyArray<BuiltinSlashCommand> = [
+	{ name: "draft", description: "根据项目素材起草文章", argumentHint: "<写作要求>" },
+	{ name: "revise", description: "修改已有文稿（可先给文件路径）", argumentHint: "[文稿路径] <修改要求>" },
+	{ name: "voice", description: "结合 voice/ 文风样本起草或修改", argumentHint: "<写作要求>" },
+	{ name: "writing", description: "显示写作项目状态" },
+	{ name: "drafts", description: "列出全部草稿版本" },
+	{ name: "diff", description: "对比两个版本（默认最近两版）", argumentHint: "[from] [to]" },
+	{ name: "revert", description: "把当前版本切回历史版本（历史文件保留）", argumentHint: "<版本>" },
 	{ name: "settings", description: "Open settings menu" },
 	{ name: "model", description: "Select model (opens selector UI)", argumentHint: "<provider/model>" },
 	{ name: "tree", description: "Navigate session tree (switch branches)" },
