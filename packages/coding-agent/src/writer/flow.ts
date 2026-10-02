@@ -14,22 +14,17 @@
  * IO 通过 FlowIO 注入，便于用 mock 模型驱动做自动化测试。
  */
 
-import { ensureProject, readState, readProjectFile, listTextFiles, writeState, writeFile, BRIEF_FILE } from "./project.ts";
+import { readState, writeState } from "./project.ts";
 import { readDraft, saveDraft, setStage } from "./versions.ts";
 import { validateReview } from "./review-validate.ts";
 import { formatProgramSummary } from "./checker.ts";
-import { loadWriterContext, persistReviewFile, prepareReviewRound, readSourceTexts } from "./flow-review.ts";
-import {
-	stripFences,
-	buildDraftInstruction,
-	buildReviseStartInstruction,
-	buildReviseRoundInstruction,
-	buildFormatRetryInstruction,
-} from "./prompts.ts";
+import { persistReviewFile, prepareReviewRound, readSourceTexts } from "./flow-review.ts";
+import { prepareFlowStart } from "./flow-start.ts";
+import { stripFences, buildReviseRoundInstruction, buildFormatRetryInstruction } from "./prompts.ts";
+import { applyParagraphEdit } from "./paragraph-edit.ts";
 import type { WriterMode, WriterStage } from "./types.ts";
 
 export const MAX_REVISION_ROUNDS = 2;
-const VOICE_SAMPLE_LIMIT = 8000;
 const MIN_FALLBACK_DRAFT_CHARS = 30;
 
 export interface FlowIO {
@@ -94,103 +89,28 @@ export class WritingFlow {
 		this.revisionSnapshot = null;
 		this.snapshotDirty = false;
 
-		await ensureProject(this.root);
-		const state = await readState(this.root);
-		this.roundStartDraftCount = state.draftCount;
-		this.currentDraftPath = state.currentDraft;
-
-		if (mode === "revise" || (mode === "voice" && options?.voiceRevise)) {
-			const base = await this.resolveBaseDraft(options?.baseDraftPath);
-			if (!base) {
-				this.io.notify(
-					"没有可修改的文稿：项目里还没有任何版本。先用 /draft 起草，或把稿件放进 drafts/ 或 sources/ 后用 /revise <文件路径> <要求>。",
-					"error",
-				);
-				this.stage = "idle";
-				this.mode = null;
-				return false;
-			}
-			this.currentDraftPath = base.path;
-			const ctx = await loadWriterContext(this.root);
-			const instruction = buildReviseStartInstruction({
-				request: trimmed,
-				draftPath: base.path,
-				draftText: base.text,
-				briefText: ctx.briefText,
-				lockedSentences: ctx.lockedSentences,
-			});
-			this.stage = "drafting";
-			this.io.setActiveTools(["read", "save_draft", "revise_paragraph"]);
-			this.io.sendUserMessage(instruction);
-		} else {
-			// draft, or voice drafting a new piece. A brief without real content is seeded with the request.
-			const ctx = await loadWriterContext(this.root);
-			let briefCreated = false;
-			if (ctx.briefWasEmpty) {
-				await writeFile(`${this.root}/${BRIEF_FILE}`, `# 写作要求\n\n${trimmed}\n`);
-				briefCreated = true;
-				ctx.briefText = `# 写作要求\n\n${trimmed}`;
-			}
-			const voiceFiles = mode === "voice" ? await this.loadVoiceFiles() : [];
-			const instruction = buildDraftInstruction({
-				request: trimmed,
-				mode: mode === "voice" ? "voice" : "draft",
-				briefText: ctx.briefText,
-				lockedSentences: ctx.lockedSentences,
-				sourceFiles: ctx.sourceFiles,
-				voiceFiles,
-				briefCreated,
-			});
-			this.stage = "drafting";
-			this.io.setActiveTools(["read", "save_draft"]);
-			this.io.sendUserMessage(instruction);
+		const prep = await prepareFlowStart(
+			this.root,
+			mode,
+			trimmed,
+			options,
+			(message, type) => this.io.notify(message, type),
+		);
+		if (!prep) {
+			this.io.notify(
+				"没有可修改的文稿：项目里还没有任何版本。先用 /draft 起草，或把稿件放进 drafts/ 或 sources/ 后用 /revise <文件路径> <要求>。",
+				"error",
+			);
+			this.stage = "idle";
+			this.mode = null;
+			return false;
 		}
+		if (prep.draftPath) this.currentDraftPath = prep.draftPath;
+		this.stage = "drafting";
+		this.io.setActiveTools(prep.toolset);
+		this.io.sendUserMessage(prep.instruction);
 		await this.persistStage();
 		return true;
-	}
-
-	private async loadVoiceFiles(limit = VOICE_SAMPLE_LIMIT): Promise<{ path: string; name: string; content: string }[]> {
-		const files = await listTextFiles(this.root, "voice");
-		const loaded: { path: string; name: string; content: string }[] = [];
-		for (const f of files) {
-			const content = await readProjectFile(this.root, f.path);
-			if (content === null) continue;
-			const trimmed = content.trim();
-			loaded.push({
-				path: f.path,
-				name: f.name,
-				content: trimmed.length > limit ? `${trimmed.slice(0, limit)}（截断）` : trimmed,
-			});
-		}
-		return loaded;
-	}
-
-	/** Resolve the manuscript a revise flow should operate on. */
-	private async resolveBaseDraft(baseDraftPath?: string): Promise<{ path: string; text: string } | null> {
-		const state = await readState(this.root);
-		if (baseDraftPath) {
-			if (!baseDraftPath.startsWith("drafts/")) {
-				// Outside drafts/: import it as the baseline version (original file untouched).
-				const content = await readProjectFile(this.root, baseDraftPath);
-				if (content === null) {
-					this.io.notify(`找不到文件：${baseDraftPath}（按项目根目录 ${this.root} 解析）`, "error");
-					return null;
-				}
-				const saved = await saveDraft(this.root, content, `imported from ${baseDraftPath} as revise baseline`);
-				return { path: saved.path, text: content };
-			}
-			const content = await readDraft(this.root, baseDraftPath);
-			if (content === null) {
-				this.io.notify(`找不到文稿：${baseDraftPath}`, "error");
-				return null;
-			}
-			return { path: baseDraftPath, text: content };
-		}
-		if (state.currentDraft) {
-			const content = await readDraft(this.root, state.currentDraft);
-			if (content !== null) return { path: state.currentDraft, text: content };
-		}
-		return null;
 	}
 
 	// =========================================================================
@@ -210,35 +130,11 @@ export class WritingFlow {
 		if (this.stage !== "revising" || this.revisionSnapshot === null) {
 			return { ok: false, message: "revise_paragraph 只能在修改轮使用（当前没有打开的修改快照）" };
 		}
-		const wanted = original.replace(/\r\n/g, "\n").trim();
-		if (!wanted) return { ok: false, message: "original 不能为空" };
-		const snapshot = this.revisionSnapshot;
-		const count = countOccurrences(snapshot, wanted);
-		if (count === 0) {
-			// Retry with paragraph-trimmed variant (line-ending / surrounding whitespace differences).
-			const normalized = snapshot
-				.replace(/\r\n/g, "\n")
-				.split(/\n\s*\n/)
-				.map((p) => p.trim())
-				.filter((p) => p.length > 0)
-				.join("\n\n");
-			if (countOccurrences(normalized, wanted) === 1) {
-				this.revisionSnapshot = normalized.replace(wanted, replacement.replace(/\r\n/g, "\n").trim());
-				this.snapshotDirty = true;
-				return { ok: true, message: "已替换（归一化匹配）。" };
-			}
-			return {
-				ok: false,
-				message:
-					"original 在当前文稿中找不到（必须逐字复制要修改的段落，包括标点）。先调用 read 读取当前文稿，再原样引用要修改的段落。",
-			};
-		}
-		if (count > 1) {
-			return { ok: false, message: `original 在当前文稿中出现 ${count} 次，无法唯一定位。请包含更多上下文使其唯一。` };
-		}
-		this.revisionSnapshot = snapshot.replace(wanted, replacement.replace(/\r\n/g, "\n").trim());
+		const result = applyParagraphEdit(this.revisionSnapshot, original, replacement);
+		if (!result.ok) return { ok: false, message: result.message };
+		this.revisionSnapshot = result.snapshot;
 		this.snapshotDirty = true;
-		return { ok: true, message: "已替换。" };
+		return { ok: true, message: result.message };
 	}
 
 	// =========================================================================
@@ -401,12 +297,3 @@ export class WritingFlow {
 	}
 }
 
-function countOccurrences(haystack: string, needle: string): number {
-	let count = 0;
-	let idx = haystack.indexOf(needle);
-	while (idx !== -1) {
-		count += 1;
-		idx = haystack.indexOf(needle, idx + needle.length);
-	}
-	return count;
-}
