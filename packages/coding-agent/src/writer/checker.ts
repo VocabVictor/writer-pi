@@ -7,7 +7,9 @@
  * digits counts as one group. totalCharsNoWhitespace is also reported for transparency.
  */
 
+import type { GenreChecks } from "./genres/types.ts";
 import type { ProgramCheckResult, ReviewIssue } from "./types.ts";
+import { checkCitations } from "./citations.ts";
 import { splitParagraphs } from "./project.ts";
 
 const CJK_RE = /[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/g;
@@ -92,12 +94,13 @@ function splitSentences(text: string): string[] {
 const MIN_DUPLICATE_PARAGRAPH_CHARS = 10;
 const MIN_DUPLICATE_SENTENCE_CHARS = 15;
 
-export function checkDuplicateParagraphs(text: string): { paragraph: number; quote: string }[] {
+export function checkDuplicateParagraphs(text: string, loose = false): { paragraph: number; quote: string }[] {
 	const paragraphs = splitParagraphs(text);
+	const threshold = loose ? MIN_DUPLICATE_PARAGRAPH_CHARS * 4 : MIN_DUPLICATE_PARAGRAPH_CHARS;
 	const seen = new Map<string, number>();
 	const duplicates: { paragraph: number; quote: string }[] = [];
 	paragraphs.forEach((p, i) => {
-		if (p.length < MIN_DUPLICATE_PARAGRAPH_CHARS) return;
+		if (p.length < threshold) return;
 		const first = seen.get(p);
 		if (first !== undefined) {
 			duplicates.push({ paragraph: i + 1, quote: p.slice(0, 80) });
@@ -108,10 +111,11 @@ export function checkDuplicateParagraphs(text: string): { paragraph: number; quo
 	return duplicates;
 }
 
-export function checkDuplicateSentences(text: string): { quote: string; count: number }[] {
+export function checkDuplicateSentences(text: string, loose = false): { quote: string; count: number }[] {
+	const threshold = loose ? MIN_DUPLICATE_SENTENCE_CHARS * 2 : MIN_DUPLICATE_SENTENCE_CHARS;
 	const counts = new Map<string, number>();
 	for (const s of splitSentences(text)) {
-		if (s.length < MIN_DUPLICATE_SENTENCE_CHARS) continue;
+		if (s.length < threshold) continue;
 		counts.set(s, (counts.get(s) ?? 0) + 1);
 	}
 	return [...counts.entries()]
@@ -124,14 +128,33 @@ export function checkLocked(text: string, lockedSentences: string[]): string[] {
 	return lockedSentences.filter((sentence) => !text.includes(sentence));
 }
 
+const DEFAULT_CHECKS: GenreChecks = {
+	length: true,
+	bannedWords: true,
+	duplicates: "strict",
+	locked: true,
+	citations: false,
+};
+
+/**
+ * Run the program checks the CURRENT GENRE asks for. `checks` comes from the genre
+ * config; poetry/fiction turn duplicate detection off, academic turns citations on.
+ */
 export function runProgramChecks(
 	text: string,
-	options: { briefText: string | null; lockedSentences: string[]; bannedWords?: string[] },
+	options: {
+		briefText: string | null;
+		lockedSentences: string[];
+		bannedWords?: string[];
+		checks?: GenreChecks;
+		referenceTexts?: string[];
+	},
 ): ProgramCheckResult {
+	const checks = { ...DEFAULT_CHECKS, ...(options.checks ?? {}) };
 	const target = options.briefText ? parseLengthTarget(options.briefText) : null;
 	const counts = countWords(text);
 	let withinTarget: boolean | null = null;
-	if (target) {
+	if (target && checks.length) {
 		withinTarget = true;
 		if (target.min !== null && counts.wordCount < target.min) withinTarget = false;
 		if (target.max !== null && counts.wordCount > target.max) withinTarget = false;
@@ -147,10 +170,11 @@ export function runProgramChecks(
 			target,
 			withinTarget,
 		},
-		bannedWords: checkBannedWords(text, banned),
-		duplicateParagraphs: checkDuplicateParagraphs(text),
-		duplicateSentences: checkDuplicateSentences(text),
-		lockedMissing: checkLocked(text, options.lockedSentences),
+		bannedWords: checks.bannedWords ? checkBannedWords(text, banned) : [],
+		duplicateParagraphs: checks.duplicates === "off" ? [] : checkDuplicateParagraphs(text, checks.duplicates === "loose"),
+		duplicateSentences: checks.duplicates === "off" ? [] : checkDuplicateSentences(text, checks.duplicates === "loose"),
+		lockedMissing: checks.locked ? checkLocked(text, options.lockedSentences) : [],
+		citations: checks.citations ? checkCitations(text, options.referenceTexts ?? []) : [],
 	};
 }
 
@@ -202,6 +226,15 @@ export function programIssuesAsLeads(checks: ProgramCheckResult, paragraphCount:
 			suggestion: "恢复该原句的原文，或与用户确认解除锁定",
 		});
 	}
+	for (const citation of checks.citations) {
+		issues.push({
+			kind: "unsourced_citation",
+			paragraph: 1,
+			quote: citation.marker,
+			reason: `程序检查：引用标记 ${citation.marker} 在 context/references.md 与 sources/ 中找不到对应`,
+			suggestion: "登记该引用与来源的对应关系，或删除这个引用",
+		});
+	}
 	return issues;
 }
 
@@ -216,7 +249,7 @@ export function formatProgramSummary(checks: ProgramCheckResult): string {
 			`；纯中文字符 ${len.cjkChars}。`,
 	);
 	if (checks.bannedWords.length > 0) {
-		lines.push(`禁用词：${checks.bannedWords.map((b) => `「${b.word}」×${b.count}`).join("、")}`);
+		lines.push(`禁用词：${checks.bannedWords.map((b: { word: string; count: number }) => `「${b.word}」×${b.count}`).join("、")}`);
 	}
 	if (checks.lockedMissing.length > 0) {
 		lines.push(`锁定原句缺失 ${checks.lockedMissing.length} 条`);

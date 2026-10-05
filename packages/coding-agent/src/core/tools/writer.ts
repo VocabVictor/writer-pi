@@ -9,6 +9,8 @@ import type { ToolDefinition } from "../extensions/types.ts";
 import { wrapToolDefinition } from "./tool-definition-wrapper.ts";
 import { writerRuntime } from "../../writer/runtime.ts";
 import { diffDrafts, revertTo, parseDraftVersion, draftPathFor } from "../../writer/versions.ts";
+import { getGenreOrFallback } from "../../writer/genres/index.ts";
+import { mkdir, appendFile, writeFile } from "node:fs/promises";
 
 const saveDraftSchema = Type.Object({
 	content: Type.String({ description: "完整文稿正文（纯文本，不含代码块围栏与说明文字）" }),
@@ -136,11 +138,61 @@ function parseVersionArg(arg: string): number | null {
 	return Number(normalized);
 }
 
+const updateContextSchema = Type.Object({
+	file: Type.String({ description: "上下文文件名（不含目录），如 characters.md、references.md" }),
+	content: Type.String({ description: "新的文件内容（replace）或要追加的段落（append）" }),
+	mode: Type.Optional(Type.Union([Type.Literal("replace"), Type.Literal("append")], { description: "默认 replace" })),
+});
+
+/**
+ * Genre-scoped persistent-context tool (fiction 的设定/时间线/事件，academic 的引用对应）。
+ * Only the context files declared by the CURRENT genre's config are writable.
+ */
+export function createUpdateContextToolDefinition(cwd: string): ToolDefinition<typeof updateContextSchema> {
+	return {
+		name: "update_context",
+		label: "更新写作上下文",
+		description:
+			"更新当前体裁的持久上下文文件（人物设定、时间线、叙述视角、已经发生的事件、引用对应等）。只允许写当前体裁声明的文件；每次内容变化后应更新，保持与文稿一致。",
+		promptSnippet: "更新体裁持久上下文（人物/时间线/事件/引用对应等，按体裁配置）",
+		parameters: updateContextSchema,
+		async execute(_toolCallId, params) {
+			const flow = writerRuntime.flowFor(cwd);
+			const genre = getGenreOrFallback(flow.genreId);
+			const allowed = genre.context?.files.find((f) => f.file === params.file);
+			if (!allowed) {
+				return {
+					content: [
+						{
+							type: "text",
+							text: `体裁 ${genre.id} 不提供上下文文件 ${params.file}。可用文件：${genre.context?.files.map((f) => f.file).join(", ") || "（无）"}。`,
+						},
+					],
+					details: {},
+					isError: true,
+				};
+			}
+			const abs = `${cwd}/context/${params.file}`;
+			await mkdir(`${cwd}/context`, { recursive: true });
+			if (params.mode === "append") {
+				await appendFile(abs, `${params.content.trimEnd()}\n`, "utf-8");
+			} else {
+				await writeFile(abs, params.content.endsWith("\n") ? params.content : `${params.content}\n`, "utf-8");
+			}
+			return {
+				content: [{ type: "text", text: `已更新 context/${params.file}（${allowed.title}）。` }],
+				details: { file: params.file, mode: params.mode ?? "replace" },
+			};
+		},
+	};
+}
+
 export function createWriterTools(cwd: string): AgentTool[] {
 	return [
 		wrapToolDefinition(createSaveDraftToolDefinition(cwd)),
 		wrapToolDefinition(createReviseParagraphToolDefinition(cwd)),
 		wrapToolDefinition(createDiffVersionsToolDefinition(cwd)),
 		wrapToolDefinition(createRevertVersionToolDefinition(cwd)),
+		wrapToolDefinition(createUpdateContextToolDefinition(cwd)),
 	];
 }

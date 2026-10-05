@@ -6,6 +6,8 @@
 import { readBrief, readProjectFile, listTextFiles, parseLockedSentences, readState, writeState } from "./project.ts";
 import { runProgramChecks, programIssuesAsLeads, formatProgramSummary, extractBannedWords } from "./checker.ts";
 import { buildReviewInstruction } from "./prompts.ts";
+import { allowedKinds } from "./genre-instructions.ts";
+import type { GenreConfig } from "./genres/types.ts";
 import { reviewPathFor } from "./versions.ts";
 import type { ProgramCheckResult, ReviewFile } from "./types.ts";
 import { readFile, writeFile } from "node:fs/promises";
@@ -17,19 +19,18 @@ export interface ReviewRoundPreparation {
 	programChecks: ProgramCheckResult;
 }
 
-/** Run program checks on the draft and build the next semantic-review instruction. */
-export async function prepareReviewRound(
-	root: string,
-	draftPath: string,
-	round: number,
-): Promise<ReviewRoundPreparation> {
+/** Run program checks (per the genre's switches) and build the next semantic-review instruction. */
+export async function prepareReviewRound(root: string, draftPath: string, round: number, genre: GenreConfig): Promise<ReviewRoundPreparation> {
 	const draftText = (await readDraftText(root, draftPath)) ?? "";
 	const briefText = await readBrief(root);
 	const lockedSentences = parseLockedSentences((await readProjectFile(root, "locked.md")) ?? "");
+	const references = await readReferences(root, genre);
 	const programChecks = runProgramChecks(draftText, {
 		briefText,
 		lockedSentences,
 		bannedWords: briefText ? extractBannedWords(briefText) : [],
+		checks: genre.checks,
+		referenceTexts: references,
 	});
 	const leads = programIssuesAsLeads(programChecks, countParagraphs(draftText));
 	const sourceExcerpts = await readSourceExcerpts(root);
@@ -41,8 +42,21 @@ export async function prepareReviewRound(
 		programLeads: leads,
 		sourceExcerpts,
 		round,
+		reviewFocus: genre.reviewFocus,
+		completion: genre.completion,
+		allowedKinds: allowedKinds(genre),
 	});
 	return { instruction, programChecks };
+}
+
+/** context/references.md plus sources/ contents — the citation-resolution corpus. */
+async function readReferences(root: string, genre: GenreConfig): Promise<string[]> {
+	const texts: string[] = [];
+	if (genre.context?.files.some((f) => f.file === "references.md")) {
+		const refs = await readProjectFile(root, "context/references.md");
+		if (refs !== null) texts.push(refs);
+	}
+	return [...texts, ...(await readSourceTexts(root))];
 }
 
 /** Load project context shared by the drafting/revise/review instructions. */

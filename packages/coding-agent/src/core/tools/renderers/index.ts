@@ -43,6 +43,7 @@ export function createAllToolRenderers(): Record<ToolName, ToolRenderers> {
 		revise_paragraph: {},
 		diff_versions: {},
 		revert_version: {},
+		update_context: {},
 	};
 }
 

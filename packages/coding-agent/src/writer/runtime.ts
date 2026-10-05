@@ -3,7 +3,8 @@
  * This is core product wiring — writer-pi always starts in writing mode.
  */
 
-import { WritingFlow, MAX_REVISION_ROUNDS, type FlowIO } from "./flow.ts";
+import { WritingFlow, MAX_REVISION_ROUNDS } from "./flow.ts";
+import type { FlowIO } from "./types.ts";
 import { readState } from "./project.ts";
 import { handleWriterCommand, isWriterCommand, refreshWidget } from "./writer-commands.ts";
 

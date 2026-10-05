@@ -2,7 +2,12 @@
  * writer-pi shared types for the writing project layout, reviews and flow state.
  */
 
-export type WriterMode = "draft" | "revise" | "voice";
+/** Writing operations: what this task IS (维度三). */
+export const WRITER_OPERATIONS = ["draft", "continue", "outline", "revise"] as const;
+export type WriterOperation = (typeof WRITER_OPERATIONS)[number];
+
+/** Kept as an alias for state.json compatibility with the first demo. */
+export type WriterMode = WriterOperation;
 
 export type WriterStage = "idle" | "drafting" | "reviewing" | "revising";
 
@@ -19,20 +24,33 @@ export interface WriterState {
 	reviewCount: number;
 	/** Number of completed revise rounds in the current flow. */
 	revisionRounds: number;
+	/** Current genre dimension (id); null until the first task. */
+	genre: string | null;
+	/** Current voice dimension: a voice/ file name or a free-text description. */
+	voice: string | null;
 	/** Verbatim request of the most recent /draft, /revise or /voice. */
 	lastRequest: string | null;
 	updatedAt: string;
 }
 
+/** Genre-specific kinds, enabled per genre via GenreConfig.extraKinds. */
+export const GENRE_ISSUE_KINDS = ["consistency", "unsourced_citation", "task_incomplete"] as const;
+
+/** Universal kinds (see genres/types.ts BASE_ISSUE_KINDS) plus genre-specific ones. */
 export const ISSUE_KINDS = [
-	"meaning_drift",
-	"unsourced_addition",
-	"omission",
-	"empty_elevation",
-	"over_explanation",
-	"formulaic_structure",
-	"locked_violation",
-	"other",
+	...([] as string[]).concat(
+		[
+			"meaning_drift",
+			"unsourced_addition",
+			"omission",
+			"empty_elevation",
+			"over_explanation",
+			"formulaic_structure",
+			"locked_violation",
+			"other",
+		],
+		GENRE_ISSUE_KINDS,
+	),
 ] as const;
 
 export type IssueKind = (typeof ISSUE_KINDS)[number];
@@ -65,6 +83,8 @@ export interface ProgramCheckResult {
 	duplicateParagraphs: { paragraph: number; quote: string }[];
 	duplicateSentences: { quote: string; count: number }[];
 	lockedMissing: string[];
+	/** Unresolved citation markers (academic). Empty unless the genre enables citation checks. */
+	citations: { marker: string; kind: string }[];
 }
 
 /** Persisted in reviews/review-NNN.json. */
@@ -89,4 +109,23 @@ export interface DraftVersionInfo {
 	version: number;
 	note: string | null;
 	createdAt: string;
+}
+
+/** IO surface the writing flow drives (injected; mockable in tests). */
+export interface FlowIO {
+	sendUserMessage(text: string): void;
+	setActiveTools(names: string[]): void;
+	notify(message: string, type?: "info" | "warning" | "error"): void;
+	/** Final flow summary, rendered to the user but not fed back to the model. */
+	summary(markdown: string): void;
+}
+
+/** Dimension overrides for starting a flow. */
+export interface StartOptions {
+	/** /revise 基稿：项目内相对路径或绝对路径。 */
+	baseDraftPath?: string;
+	/** 显式指定体裁（--genre=）；未指定时由 inferGenre 推断。 */
+	genre?: string;
+	/** 文风维度：描述文本、"sample"（voice/ 样本）或 null（不使用）。 */
+	voice?: string | null;
 }

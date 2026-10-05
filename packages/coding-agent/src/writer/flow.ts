@@ -22,30 +22,19 @@ import { persistReviewFile, prepareReviewRound, readSourceTexts } from "./flow-r
 import { prepareFlowStart } from "./flow-start.ts";
 import { stripFences, buildReviseRoundInstruction, buildFormatRetryInstruction } from "./prompts.ts";
 import { applyParagraphEdit } from "./paragraph-edit.ts";
-import type { WriterMode, WriterStage } from "./types.ts";
+import { renderGenreRules } from "./genre-instructions.ts";
+import { getGenreOrFallback } from "./genres/index.ts";
+import type { FlowIO, StartOptions, WriterOperation, WriterStage } from "./types.ts";
 
 export const MAX_REVISION_ROUNDS = 2;
 const MIN_FALLBACK_DRAFT_CHARS = 30;
 
-export interface FlowIO {
-	sendUserMessage(text: string): void;
-	setActiveTools(names: string[]): void;
-	notify(message: string, type?: "info" | "warning" | "error"): void;
-	/** Final flow summary, rendered to the user but not fed back to the model. */
-	summary(markdown: string): void;
-}
-
-export interface StartOptions {
-	/** /revise /voice 修改模式下的基稿：项目内相对路径或绝对路径。 */
-	baseDraftPath?: string;
-	/** voice 模式修改当前稿时为 true。 */
-	voiceRevise?: boolean;
-}
-
 export class WritingFlow {
 	readonly root: string;
 	stage: WriterStage = "idle";
-	mode: WriterMode | null = null;
+	operation: WriterOperation | null = null;
+	genreId: string | null = null;
+	mode: WriterOperation | null = null;
 	request: string | null = null;
 	round = 0;
 	formatRetried = false;
@@ -70,17 +59,21 @@ export class WritingFlow {
 	// Starting a flow
 	// =========================================================================
 
-	async start(mode: WriterMode, request: string, options?: StartOptions): Promise<boolean> {
+	async start(operation: WriterOperation, request: string, options?: StartOptions): Promise<boolean> {
 		if (this.isActive) {
 			this.io.notify("已有一个写作流程在进行中。先等待它结束，或中止当前流程。", "warning");
 			return false;
 		}
 		const trimmed = request.trim();
 		if (!trimmed) {
-			this.io.notify("用法：/draft <写作要求>、/revise [文稿路径] <修改要求>、/voice <写作要求>", "warning");
+			this.io.notify(
+				"用法：/draft <要求>、/continue <要求>、/outline <要求>、/revise [文稿路径] <要求>；可用 --genre=<体裁> 与 --voice=<文风|sample> 指定维度。",
+				"warning",
+			);
 			return false;
 		}
-		this.mode = mode;
+		this.operation = operation;
+		this.mode = operation;
 		this.request = trimmed;
 		this.round = 0;
 		this.formatRetried = false;
@@ -91,9 +84,9 @@ export class WritingFlow {
 
 		const prep = await prepareFlowStart(
 			this.root,
-			mode,
+			operation,
 			trimmed,
-			options,
+			{ baseDraftPath: options?.baseDraftPath, genre: options?.genre, voice: options?.voice },
 			(message, type) => this.io.notify(message, type),
 		);
 		if (!prep) {
@@ -106,6 +99,7 @@ export class WritingFlow {
 			return false;
 		}
 		if (prep.draftPath) this.currentDraftPath = prep.draftPath;
+		this.genreId = prep.genre.id;
 		this.stage = "drafting";
 		this.io.setActiveTools(prep.toolset);
 		this.io.sendUserMessage(prep.instruction);
@@ -170,7 +164,8 @@ export class WritingFlow {
 			await this.finish("内部错误：没有当前文稿。");
 			return;
 		}
-		const prep = await prepareReviewRound(this.root, this.currentDraftPath, this.round + 1);
+		const genre = getGenreOrFallback(this.genreId);
+		const prep = await prepareReviewRound(this.root, this.currentDraftPath, this.round + 1, genre);
 		this.stage = "reviewing";
 		this.io.setActiveTools([]);
 		this.io.sendUserMessage(prep.instruction);
@@ -184,7 +179,8 @@ export class WritingFlow {
 		}
 		const draftPath = this.currentDraftPath;
 		const draftText = (await readDraft(this.root, draftPath)) ?? "";
-		const prep = await prepareReviewRound(this.root, draftPath, this.round + 1);
+		const genre = getGenreOrFallback(this.genreId);
+		const prep = await prepareReviewRound(this.root, draftPath, this.round + 1, genre);
 		const validation = validateReview(assistantText ?? "", draftText, { sourceTexts: await readSourceTexts(this.root) });
 
 		if (!validation.ok) {
@@ -231,7 +227,7 @@ export class WritingFlow {
 		this.revisionSnapshot = draftText;
 		this.snapshotDirty = false;
 		this.stage = "revising";
-		this.io.setActiveTools(["read", "revise_paragraph"]);
+		this.io.setActiveTools(["read", "revise_paragraph", ...genre.tools]);
 		this.io.sendUserMessage(
 			buildReviseRoundInstruction({
 				draftPath,
@@ -239,6 +235,7 @@ export class WritingFlow {
 				issues: validation.issues,
 				reviewPath: review,
 				round: this.round + 1,
+				genreRules: renderGenreRules(genre),
 			}),
 		);
 		await this.persistStage();

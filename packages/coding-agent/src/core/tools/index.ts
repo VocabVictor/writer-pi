@@ -93,6 +93,7 @@ import {
 	createReviseParagraphToolDefinition,
 	createDiffVersionsToolDefinition,
 	createRevertVersionToolDefinition,
+	createUpdateContextToolDefinition,
 } from "./writer.ts";
 import { wrapToolDefinition } from "./tool-definition-wrapper.ts";
 import { createWriteTool, createWriteToolDefinition, type WriteToolOptions } from "./write.ts";
@@ -111,7 +112,8 @@ export type ToolName =
 	| "save_draft"
 	| "revise_paragraph"
 	| "diff_versions"
-	| "revert_version";
+	| "revert_version"
+	| "update_context";
 export const allToolNames: Set<ToolName> = new Set([
 	"read",
 	"bash",
@@ -125,6 +127,7 @@ export const allToolNames: Set<ToolName> = new Set([
 	"revise_paragraph",
 	"diff_versions",
 	"revert_version",
+	"update_context",
 ]);
 
 export interface ToolsOptions {
@@ -209,6 +212,7 @@ export function createAllToolDefinitions(cwd: string, options?: ToolsOptions): R
 		revise_paragraph: createReviseParagraphToolDefinition(cwd),
 		diff_versions: createDiffVersionsToolDefinition(cwd),
 		revert_version: createRevertVersionToolDefinition(cwd),
+		update_context: createUpdateContextToolDefinition(cwd),
 		bash: createBashToolDefinition(cwd, options?.bash),
 		powershell: createPowerShellToolDefinition(cwd, options?.powershell),
 		edit: createEditToolDefinition(cwd, options?.edit),
@@ -246,6 +250,7 @@ export function createAllTools(cwd: string, options?: ToolsOptions): Record<Tool
 		revise_paragraph: wrapToolDefinition(createReviseParagraphToolDefinition(cwd)),
 		diff_versions: wrapToolDefinition(createDiffVersionsToolDefinition(cwd)),
 		revert_version: wrapToolDefinition(createRevertVersionToolDefinition(cwd)),
+		update_context: wrapToolDefinition(createUpdateContextToolDefinition(cwd)),
 		bash: createBashTool(cwd, options?.bash),
 		powershell: createPowerShellTool(cwd, options?.powershell),
 		edit: createEditTool(cwd, options?.edit),

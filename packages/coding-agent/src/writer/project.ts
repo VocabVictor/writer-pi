@@ -42,6 +42,8 @@ export function initialState(): WriterState {
 		draftCount: 0,
 		reviewCount: 0,
 		revisionRounds: 0,
+		genre: null,
+		voice: null,
 		lastRequest: null,
 		updatedAt: new Date().toISOString(),
 	};

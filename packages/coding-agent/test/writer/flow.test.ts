@@ -3,7 +3,8 @@ import { mkdtemp, rm, writeFile, readFile, readdir } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { ensureProject, readState } from "../../src/writer/project.ts";
-import { WritingFlow, MAX_REVISION_ROUNDS, type FlowIO } from "../../src/writer/flow.ts";
+import { WritingFlow, MAX_REVISION_ROUNDS } from "../../src/writer/flow.ts";
+import type { FlowIO } from "../../src/writer/types.ts";
 
 interface MockIO {
 	sent: string[];
@@ -287,7 +288,7 @@ describe("WritingFlow（mock 模型驱动；mock 验证通过 ≠ 实际模型�
 		try {
 			const io = makeIO();
 			const flow = new WritingFlow(root, io);
-			await flow.start("voice", "写一段下班路上买到最后一份糖炒栗子的开心");
+			await flow.start("draft", "写一段下班路上买到最后一份糖炒栗子的开心", { voice: "sample" });
 			expect(io.sent[0]).toContain("文风样本");
 			expect(io.sent[0]).toContain("我喜欢短句。主语常常省略。");
 			await flow.abort();
