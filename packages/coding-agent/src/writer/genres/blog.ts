@@ -32,10 +32,6 @@ export const blog: GenreConfig = {
 	extraKinds: ["task_incomplete"],
 	checks: { length: true, bannedWords: true, duplicates: "strict", locked: true, citations: false },
 	tools: [],
-	completion: [
-		"中心观点清楚且与用户要求一致",
-		"所有例子都支撑观点，没有为凑字数的旁枝",
-		"同一个意思没有反复解释",
-	],
+	completion: ["中心观点清楚且与用户要求一致", "所有例子都支撑观点，没有为凑字数的旁枝", "同一个意思没有反复解释"],
 	operations: ["draft", "continue", "outline", "revise"],
 };

@@ -5,14 +5,22 @@
  */
 
 import { stat } from "node:fs/promises";
-import { ensureProject, readState, readProjectFile, listTextFiles, writeState, writeFile, BRIEF_FILE } from "./project.ts";
-import { saveDraft, readDraft } from "./versions.ts";
 import { loadWriterContext } from "./flow-review.ts";
-import { buildDraftInstruction, buildReviseStartInstruction } from "./prompts.ts";
-import { renderGenreRules, operationGuidance } from "./genre-instructions.ts";
+import { operationGuidance, renderGenreRules } from "./genre-instructions.ts";
 import { getGenreOrFallback, inferGenre } from "./genres/index.ts";
 import type { GenreConfig } from "./genres/types.ts";
+import {
+	BRIEF_FILE,
+	ensureProject,
+	listTextFiles,
+	readProjectFile,
+	readState,
+	writeFile,
+	writeState,
+} from "./project.ts";
+import { buildDraftInstruction, buildReviseStartInstruction } from "./prompts.ts";
 import type { WriterOperation } from "./types.ts";
+import { readDraft, saveDraft } from "./versions.ts";
 
 const VOICE_SAMPLE_LIMIT = 8000;
 
@@ -136,7 +144,10 @@ async function fileExists(path: string): Promise<boolean> {
 	}
 }
 
-async function loadVoiceFiles(root: string, limit = VOICE_SAMPLE_LIMIT): Promise<{ path: string; name: string; content: string }[]> {
+async function loadVoiceFiles(
+	root: string,
+	limit = VOICE_SAMPLE_LIMIT,
+): Promise<{ path: string; name: string; content: string }[]> {
 	const files = await listTextFiles(root, "voice");
 	const loaded: { path: string; name: string; content: string }[] = [];
 	for (const f of files) {
@@ -153,7 +164,11 @@ async function loadVoiceFiles(root: string, limit = VOICE_SAMPLE_LIMIT): Promise
 }
 
 /** Resolve the manuscript a revise flow should operate on. */
-async function resolveBaseDraft(root: string, baseDraftPath: string | undefined, notify: Notify): Promise<{ path: string; text: string } | null> {
+async function resolveBaseDraft(
+	root: string,
+	baseDraftPath: string | undefined,
+	notify: Notify,
+): Promise<{ path: string; text: string } | null> {
 	const state = await readState(root);
 	if (baseDraftPath) {
 		if (!baseDraftPath.startsWith("drafts/")) {

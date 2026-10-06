@@ -1,8 +1,14 @@
-import { describe, expect, test } from "vitest";
-import { mkdtemp, rm, writeFile, readFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { ensureProject, parseLockedSentences, splitParagraphs, readState, fileExists } from "../../src/writer/project.ts";
+import { describe, expect, test } from "vitest";
+import {
+	ensureProject,
+	fileExists,
+	parseLockedSentences,
+	readState,
+	splitParagraphs,
+} from "../../src/writer/project.ts";
 
 async function makeTempProject(): Promise<string> {
 	return await mkdtemp(join(tmpdir(), "writer-pi-test-"));

@@ -4,12 +4,12 @@
  * /diff /revert /genre）在 project-commands.ts。分发入口在 AgentSession.prompt。
  */
 
-import { MAX_REVISION_ROUNDS, WritingFlow } from "./flow.ts";
-import { readState, readBrief } from "./project.ts";
-import type { WriterUI, WriterSession } from "./runtime.ts";
-import type { StartOptions, WriterOperation } from "./types.ts";
+import { MAX_REVISION_ROUNDS, type WritingFlow } from "./flow.ts";
 import { describeSelection, inferGenre } from "./genres/index.ts";
-import { projectCommands, isProjectCommand } from "./project-commands.ts";
+import { readBrief, readState } from "./project.ts";
+import { isProjectCommand, projectCommands } from "./project-commands.ts";
+import type { WriterSession, WriterUI } from "./runtime.ts";
+import type { StartOptions, WriterOperation } from "./types.ts";
 
 const OPERATION_COMMANDS = new Set(["draft", "continue", "outline", "revise", "voice"]);
 
@@ -19,7 +19,12 @@ export function isWriterCommand(text: string): boolean {
 	return OPERATION_COMMANDS.has(name) || isProjectCommand(name);
 }
 
-export async function handleWriterCommand(session: WriterSession, ui: WriterUI, flow: WritingFlow, text: string): Promise<void> {
+export async function handleWriterCommand(
+	session: WriterSession,
+	ui: WriterUI,
+	flow: WritingFlow,
+	text: string,
+): Promise<void> {
 	const space = text.indexOf(" ");
 	const name = space === -1 ? text.slice(1) : text.slice(1, space);
 	const args = space === -1 ? "" : text.slice(space + 1).trim();
@@ -56,13 +61,18 @@ export async function handleWriterCommand(session: WriterSession, ui: WriterUI, 
 	await flow.start(operation, request, startOptions);
 	if (flow.isActive && flow.genreId) {
 		const { getGenreOrFallback } = await import("./genres/index.ts");
-		ui.notify(describeSelection(getGenreOrFallback(flow.genreId), inference.reason, dimensions.voice ?? null, operation));
+		ui.notify(
+			describeSelection(getGenreOrFallback(flow.genreId), inference.reason, dimensions.voice ?? null, operation),
+		);
 	}
 	await refreshWidget(session, ui, flow);
 }
 
 /** Parse "--genre=blog", "--voice=克制", "--voice" (sample) out of the argument line. */
-export function parseDimensionArgs(args: string, command?: string): {
+export function parseDimensionArgs(
+	args: string,
+	command?: string,
+): {
 	dimensions: StartOptions & { voice?: string | null };
 	request: string;
 } {

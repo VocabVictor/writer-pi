@@ -43,9 +43,7 @@ export const diary: GenreConfig = {
 		allowed: "错别字订正、明显的语病修复；保持记录的粗粝感",
 		requiresSource: "一切内容。不编造经历，不替作者解释心理动机，不补写作者没有的想法",
 	},
-	stages: [
-		{ id: "draft", title: "整理", guidance: "轻度编辑：只修语病与错字，保留当下的语气、矛盾和未完成的想法" },
-	],
+	stages: [{ id: "draft", title: "整理", guidance: "轻度编辑：只修语病与错字，保留当下的语气、矛盾和未完成的想法" }],
 	context: null,
 	reviewFocus: [
 		"是否把私人记录改成了面向公众的文章：加开头结尾、解释动机、提升立意（meaning_drift / empty_elevation）",

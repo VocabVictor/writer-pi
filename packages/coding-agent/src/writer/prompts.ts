@@ -70,7 +70,9 @@ export function buildDraftInstruction(ctx: DraftContext): string {
 			`# 素材文件（sources/，用 read 工具按需读取，不要凭空想象素材内容）\n\n${ctx.sourceFiles.map((f) => `- ${f.path}`).join("\n")}`,
 		);
 	} else {
-		parts.push("sources/ 目录为空：素材只在本次要求和上面的 brief 中，若材料不足以完成任务，直接指出缺口，不要编造。");
+		parts.push(
+			"sources/ 目录为空：素材只在本次要求和上面的 brief 中，若材料不足以完成任务，直接指出缺口，不要编造。",
+		);
 	}
 	if (ctx.voiceFiles && ctx.voiceFiles.length > 0) {
 		parts.push(
@@ -148,7 +150,9 @@ export function buildReviewInstruction(ctx: ReviewContext): string {
 		.split(/\n\s*\n/)
 		.map((p) => p.trim())
 		.filter((p) => p.length > 0);
-	parts.push(`# 当前文稿（${ctx.draftPath}，共 ${paragraphs.length} 段，段落按空行分隔从 1 开始编号）\n\n${ctx.draftText.trim()}`);
+	parts.push(
+		`# 当前文稿（${ctx.draftPath}，共 ${paragraphs.length} 段，段落按空行分隔从 1 开始编号）\n\n${ctx.draftText.trim()}`,
+	);
 	if (ctx.briefText) parts.push(`# brief.md（写作要求）\n\n${ctx.briefText.trim()}`);
 	if (ctx.lockedSentences.length > 0) {
 		parts.push(`# locked.md（这些句子必须逐字保留）\n\n${ctx.lockedSentences.map((s) => `- ${s}`).join("\n")}`);
@@ -159,7 +163,10 @@ export function buildReviewInstruction(ctx: ReviewContext): string {
 	if (ctx.programLeads.length > 0) {
 		parts.push(
 			`# 程序检查线索（程序产生的提示，需要你核实后决定是否列入 issues；确认属实才报告，并给出准确引用）\n\n${ctx.programLeads
-				.map((lead, i) => `${i + 1}. [${lead.kind}] ${lead.quote ? `「${lead.quote.slice(0, 60)}」` : ""}${lead.reason}`)
+				.map(
+					(lead, i) =>
+						`${i + 1}. [${lead.kind}] ${lead.quote ? `「${lead.quote.slice(0, 60)}」` : ""}${lead.reason}`,
+				)
 				.join("\n")}`,
 		);
 	} else {
@@ -168,7 +175,9 @@ export function buildReviewInstruction(ctx: ReviewContext): string {
 	parts.push(
 		`# 检查重点（通用维度 + 本篇体裁的维度）\n\n${[...UNIVERSAL_REVIEW_FOCUS, ...ctx.reviewFocus]
 			.map((f) => `- ${f}`)
-			.join("\n")}\n\n# 完成条件（不满足时用 task_incomplete 报告缺什么）\n\n${ctx.completion.map((c) => `- ${c}`).join("\n")}\n\n${buildReviewFormat(ctx.allowedKinds)}`,
+			.join(
+				"\n",
+			)}\n\n# 完成条件（不满足时用 task_incomplete 报告缺什么）\n\n${ctx.completion.map((c) => `- ${c}`).join("\n")}\n\n${buildReviewFormat(ctx.allowedKinds)}`,
 	);
 	return parts.join("\n\n");
 }
@@ -205,12 +214,14 @@ export function buildReviseRoundInstruction(ctx: ReviseRoundContext): string {
 	parts.push(
 		`# 修改任务（第 ${ctx.round} 轮）\n\n根据检查意见修改文稿。要求：\n- 只改检查意见涉及的段落和句子，不要重新润色全文。\n- 用 revise_paragraph 工具逐段修改，original 必须逐字来自当前文稿；删除段落时 replacement 传空字符串。\n- 检查意见若不合理（例如引用的内容其实没有问题），跳过它，并在最终回复里说明。\n- 保留锁定原句和作者立场，不得添加没有来源的内容。\n\n# 体裁规则\n\n${ctx.genreRules.trim()}`,
 	);
-	parts.push(`# 检查意见（存于 ${ctx.reviewPath}）\n\n${ctx.issues
-		.map(
-			(issue, i) =>
-				`${i + 1}. [${issue.kind}] 第 ${issue.paragraph} 段「${issue.quote.slice(0, 80)}」\n   问题：${issue.reason}\n   建议：${issue.suggestion ?? "（无）"}${issue.source_quote ? `\n   素材引用：「${issue.source_quote.slice(0, 80)}」` : ""}`,
-		)
-		.join("\n\n")}`);
+	parts.push(
+		`# 检查意见（存于 ${ctx.reviewPath}）\n\n${ctx.issues
+			.map(
+				(issue, i) =>
+					`${i + 1}. [${issue.kind}] 第 ${issue.paragraph} 段「${issue.quote.slice(0, 80)}」\n   问题：${issue.reason}\n   建议：${issue.suggestion ?? "（无）"}${issue.source_quote ? `\n   素材引用：「${issue.source_quote.slice(0, 80)}」` : ""}`,
+			)
+			.join("\n\n")}`,
+	);
 	parts.push(`# 当前文稿（${ctx.draftPath}）\n\n${ctx.draftText.trim()}`);
 	parts.push("# 你的任务\n\n完成所有修改后，最终回复只需列出你做的修改（一行一条），不要重复全文。");
 	return parts.join("\n\n");

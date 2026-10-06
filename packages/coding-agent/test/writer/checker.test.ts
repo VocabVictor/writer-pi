@@ -1,14 +1,14 @@
 import { describe, expect, test } from "vitest";
 import {
-	countWords,
-	parseLengthTarget,
-	extractBannedWords,
 	checkBannedWords,
 	checkDuplicateParagraphs,
 	checkDuplicateSentences,
 	checkLocked,
-	runProgramChecks,
+	countWords,
+	extractBannedWords,
+	parseLengthTarget,
 	programIssuesAsLeads,
+	runProgramChecks,
 } from "../../src/writer/checker.ts";
 import { extractJsonObject, validateReview } from "../../src/writer/review-validate.ts";
 
@@ -108,7 +108,15 @@ describe("validateReview（检查 JSON 验证）", () => {
 
 	test("accepts valid issues", () => {
 		const raw = JSON.stringify({
-			issues: [{ kind: "over_explanation", paragraph: 2, quote: "只是怕直接拒绝让场面难看", reason: "重复解释", suggestion: "删除" }],
+			issues: [
+				{
+					kind: "over_explanation",
+					paragraph: 2,
+					quote: "只是怕直接拒绝让场面难看",
+					reason: "重复解释",
+					suggestion: "删除",
+				},
+			],
 		});
 		const result = validateReview(raw, draft);
 		expect(result.ok).toBe(true);

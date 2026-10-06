@@ -29,7 +29,10 @@ export function extractCitations(text: string): CitationMarker[] {
 }
 
 /** Citations that cannot be resolved against the reference texts (references.md + sources). */
-export function checkCitations(text: string, referenceTexts: string[]): { marker: string; kind: CitationMarker["kind"] }[] {
+export function checkCitations(
+	text: string,
+	referenceTexts: string[],
+): { marker: string; kind: CitationMarker["kind"] }[] {
 	const references = referenceTexts.join("\n");
 	const unresolved: { marker: string; kind: CitationMarker["kind"] }[] = [];
 	for (const c of extractCitations(text)) {
@@ -44,7 +47,9 @@ export function checkCitations(text: string, referenceTexts: string[]): { marker
 		const name = c.marker
 			.replace(/\s*[（(]\s*\d{4}\s*[)）]?\s*$/, "") // strip trailing （2021）
 			.replace(/[)）]\s*$/, "") // strip latin trailing ")"
-			.split(/[,\uff0c]/)[0].replace(/^[(（]/, "").trim();
+			.split(/[,\uff0c]/)[0]
+			.replace(/^[(（]/, "")
+			.trim();
 		const tail = name.slice(-2);
 		if (!references.includes(name) && !(tail.length >= 2 && references.includes(tail))) unresolved.push(c);
 	}

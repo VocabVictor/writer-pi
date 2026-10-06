@@ -1,9 +1,9 @@
-import { describe, expect, test } from "vitest";
-import { mkdtemp, rm, writeFile, readFile, readdir } from "node:fs/promises";
+import { mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { describe, expect, test } from "vitest";
+import { MAX_REVISION_ROUNDS, WritingFlow } from "../../src/writer/flow.ts";
 import { ensureProject, readState } from "../../src/writer/project.ts";
-import { WritingFlow, MAX_REVISION_ROUNDS } from "../../src/writer/flow.ts";
 import type { FlowIO } from "../../src/writer/types.ts";
 
 interface MockIO {
@@ -93,7 +93,10 @@ describe("WritingFlow（mock 模型驱动；mock 验证通过 ≠ 实际模型�
 			expect(io.sent.at(-1)).toContain("后来我婉拒了那次聚会。");
 			expect(await readFile(join(root, "reviews", "review-001.json"), "utf-8")).toContain("over_explanation");
 
-			const edit = await flow.toolApplyParagraphEdit("第一段：我当时不想答应，只是怕直接拒绝让场面难看。", "我当时不想答应，只是怕直接拒绝让场面难看。");
+			const edit = await flow.toolApplyParagraphEdit(
+				"第一段：我当时不想答应，只是怕直接拒绝让场面难看。",
+				"我当时不想答应，只是怕直接拒绝让场面难看。",
+			);
 			expect(edit.ok).toBe(true);
 			const del = await flow.toolApplyParagraphEdit("第二段：后来我婉拒了那次聚会。", "");
 			expect(del.ok).toBe(true);
@@ -208,14 +211,21 @@ describe("WritingFlow（mock 模型驱动；mock 验证通过 ≠ 实际模型�
 			const io = makeIO();
 			const flow = new WritingFlow(root, io);
 			// 稿子中「我当时不想答应」出现两次，用于多处匹配测试
-			const duplicated =
-				"第一段：我当时不想答应。\n\n第二段：我当时不想答应，只是怕直接拒绝让场面难看。";
+			const duplicated = "第一段：我当时不想答应。\n\n第二段：我当时不想答应，只是怕直接拒绝让场面难看。";
 			await flow.start("draft", "写一段拒邀的说明");
 			await flow.toolSaveDraft(duplicated);
 			await flow.onAgentEnd("已保存 drafts/draft-001.md");
 			await flow.onAgentEnd(
 				JSON.stringify({
-					issues: [{ kind: "over_explanation", paragraph: 2, quote: "我当时不想答应，只是怕直接拒绝让场面难看。", reason: "r", suggestion: "s" }],
+					issues: [
+						{
+							kind: "over_explanation",
+							paragraph: 2,
+							quote: "我当时不想答应，只是怕直接拒绝让场面难看。",
+							reason: "r",
+							suggestion: "s",
+						},
+					],
 				}),
 			);
 			const missing = await flow.toolApplyParagraphEdit("这句根本不在文稿里。", "x");
@@ -247,7 +257,15 @@ describe("WritingFlow（mock 模型驱动；mock 验证通过 ≠ 实际模型�
 			await draftAndSave(flow);
 			await flow.onAgentEnd(
 				JSON.stringify({
-					issues: [{ kind: "over_explanation", paragraph: 2, quote: "后来我婉拒了那次聚会。", reason: "r", suggestion: "s" }],
+					issues: [
+						{
+							kind: "over_explanation",
+							paragraph: 2,
+							quote: "后来我婉拒了那次聚会。",
+							reason: "r",
+							suggestion: "s",
+						},
+					],
 				}),
 			);
 			await flow.onAgentEnd("检查意见不合理，我没有做修改。");

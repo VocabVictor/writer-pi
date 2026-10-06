@@ -4,13 +4,13 @@
  * 只有并列歧义且会显著影响结果时才建议询问（推断器返回 candidates）。
  */
 
-import type { GenreConfig } from "./types.ts";
 import { academic } from "./academic.ts";
 import { blog } from "./blog.ts";
+import { email, fallbackGenreId } from "./email.ts";
+import { diary, essay } from "./essay-diary.ts";
 import { fiction } from "./fiction.ts";
 import { poetry } from "./poetry.ts";
-import { essay, diary } from "./essay-diary.ts";
-import { email, fallbackGenreId } from "./email.ts";
+import type { GenreConfig } from "./types.ts";
 
 export const GENRES: GenreConfig[] = [academic, blog, fiction, poetry, essay, diary, email];
 
@@ -28,7 +28,24 @@ export { fallbackGenreId };
 
 /** Keyword clues for inference, scored by specificity. */
 const CLUES: { genre: string; words: string[] }[] = [
-	{ genre: "academic", words: ["论文", "文献", "引用", "综述", "研究", "实验", "数据", "方法", "样本", "结论", "参考文献", "学术", "段落"] },
+	{
+		genre: "academic",
+		words: [
+			"论文",
+			"文献",
+			"引用",
+			"综述",
+			"研究",
+			"实验",
+			"数据",
+			"方法",
+			"样本",
+			"结论",
+			"参考文献",
+			"学术",
+			"段落",
+		],
+	},
 	{ genre: "blog", words: ["博客", "观点", "推文", "公众号", "发布", "读者", "专栏", "帖子"] },
 	{ genre: "fiction", words: ["小说", "人物", "故事", "情节", "视角", "续写", "章节", "场景", "对话", "设定"] },
 	{ genre: "poetry", words: ["诗", "诗歌", "分行", "意象", "韵", "诗节"] },
@@ -59,7 +76,11 @@ export function inferGenre(input: {
 	}
 	const brief = input.briefText ?? "";
 	for (const g of GENRES) {
-		if (brief.includes(`体裁：${g.id}`) || brief.includes(`体裁: ${g.id}`) || brief.toLowerCase().includes(`genre: ${g.id}`)) {
+		if (
+			brief.includes(`体裁：${g.id}`) ||
+			brief.includes(`体裁: ${g.id}`) ||
+			brief.toLowerCase().includes(`genre: ${g.id}`)
+		) {
 			return { genre: g, reason: "brief" };
 		}
 	}
@@ -92,7 +113,12 @@ export function inferGenre(input: {
 }
 
 /** One-line summary of the current dimension selection, shown after starting a task. */
-export function describeSelection(genre: GenreConfig, reason: GenreInference["reason"], voice: string | null, operation: string): string {
+export function describeSelection(
+	genre: GenreConfig,
+	reason: GenreInference["reason"],
+	voice: string | null,
+	operation: string,
+): string {
 	const reasonText: Record<GenreInference["reason"], string> = {
 		explicit: "你指定",
 		brief: "brief 声明",

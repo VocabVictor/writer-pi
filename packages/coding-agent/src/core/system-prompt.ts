@@ -3,8 +3,8 @@
  */
 
 import { getSystemMessageText } from "@earendil-works/pi-ai";
-import { formatSkillsForPrompt, type Skill } from "./skills.ts";
 import { WRITER_PREAMBLE } from "../writer/prompts.ts";
+import { formatSkillsForPrompt, type Skill } from "./skills.ts";
 
 export interface BuildSystemPromptOptions {
 	/** Custom system prompt (replaces the default prefix). */

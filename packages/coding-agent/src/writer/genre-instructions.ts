@@ -7,7 +7,9 @@ import { BASE_ISSUE_KINDS, type GenreConfig } from "./genres/types.ts";
 
 export function renderGenreRules(genre: GenreConfig): string {
 	const parts: string[] = [];
-	parts.push(`## 体裁：${genre.name}（${genre.id}）${genre.experimental ? "\n\n本体裁配置为实验性，尚未经过系统验证；与用户明确要求冲突时以用户要求为准。" : ""}`);
+	parts.push(
+		`## 体裁：${genre.name}（${genre.id}）${genre.experimental ? "\n\n本体裁配置为实验性，尚未经过系统验证；与用户明确要求冲突时以用户要求为准。" : ""}`,
+	);
 	parts.push(`- 允许创作：${genre.creation.allowed}`);
 	parts.push(`- 必须有来源：${genre.creation.requiresSource}`);
 	if (genre.context) {

@@ -3,8 +3,8 @@
  * 不存在的原文引用、越界段落编号、解析失败都不能直接驱动修改。
  */
 
-import { ISSUE_KINDS, type IssueKind, type ReviewIssue } from "./types.ts";
 import { splitParagraphs } from "./project.ts";
+import { ISSUE_KINDS, type IssueKind, type ReviewIssue } from "./types.ts";
 
 export interface ReviewValidationOk {
 	ok: true;
@@ -119,8 +119,15 @@ function normalizeIssue(
 		return undefined;
 	}
 	const paragraph = it.paragraph;
-	if (typeof paragraph !== "number" || !Number.isInteger(paragraph) || paragraph < 1 || paragraph > ctx.paragraphs.length) {
-		warnings.push(`${label} 的段落编号越界（${JSON.stringify(paragraph ?? null)}，共 ${ctx.paragraphs.length} 段），已丢弃`);
+	if (
+		typeof paragraph !== "number" ||
+		!Number.isInteger(paragraph) ||
+		paragraph < 1 ||
+		paragraph > ctx.paragraphs.length
+	) {
+		warnings.push(
+			`${label} 的段落编号越界（${JSON.stringify(paragraph ?? null)}，共 ${ctx.paragraphs.length} 段），已丢弃`,
+		);
 		return undefined;
 	}
 	const quote = it.quote;
@@ -139,8 +146,10 @@ function normalizeIssue(
 		return undefined;
 	}
 
-	const suggestion = typeof it.suggestion === "string" && it.suggestion.trim().length > 0 ? it.suggestion.trim() : undefined;
-	let sourceQuote = typeof it.source_quote === "string" && it.source_quote.trim().length > 0 ? it.source_quote.trim() : undefined;
+	const suggestion =
+		typeof it.suggestion === "string" && it.suggestion.trim().length > 0 ? it.suggestion.trim() : undefined;
+	let sourceQuote =
+		typeof it.source_quote === "string" && it.source_quote.trim().length > 0 ? it.source_quote.trim() : undefined;
 	if (sourceQuote && ctx.sourceAll && !ctx.sourceAll.includes(sourceQuote)) {
 		warnings.push(`${label} 的素材引用在素材中不存在，已忽略 source_quote 字段`);
 		sourceQuote = undefined;

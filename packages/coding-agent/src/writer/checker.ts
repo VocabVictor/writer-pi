@@ -7,10 +7,10 @@
  * digits counts as one group. totalCharsNoWhitespace is also reported for transparency.
  */
 
-import type { GenreChecks } from "./genres/types.ts";
-import type { ProgramCheckResult, ReviewIssue } from "./types.ts";
 import { checkCitations } from "./citations.ts";
+import type { GenreChecks } from "./genres/types.ts";
 import { splitParagraphs } from "./project.ts";
+import type { ProgramCheckResult, ReviewIssue } from "./types.ts";
 
 const CJK_RE = /[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/g;
 const LATIN_WORD_RE = /[A-Za-z]+/g;
@@ -171,8 +171,10 @@ export function runProgramChecks(
 			withinTarget,
 		},
 		bannedWords: checks.bannedWords ? checkBannedWords(text, banned) : [],
-		duplicateParagraphs: checks.duplicates === "off" ? [] : checkDuplicateParagraphs(text, checks.duplicates === "loose"),
-		duplicateSentences: checks.duplicates === "off" ? [] : checkDuplicateSentences(text, checks.duplicates === "loose"),
+		duplicateParagraphs:
+			checks.duplicates === "off" ? [] : checkDuplicateParagraphs(text, checks.duplicates === "loose"),
+		duplicateSentences:
+			checks.duplicates === "off" ? [] : checkDuplicateSentences(text, checks.duplicates === "loose"),
 		lockedMissing: checks.locked ? checkLocked(text, options.lockedSentences) : [],
 		citations: checks.citations ? checkCitations(text, options.referenceTexts ?? []) : [],
 	};
@@ -249,7 +251,9 @@ export function formatProgramSummary(checks: ProgramCheckResult): string {
 			`；纯中文字符 ${len.cjkChars}。`,
 	);
 	if (checks.bannedWords.length > 0) {
-		lines.push(`禁用词：${checks.bannedWords.map((b: { word: string; count: number }) => `「${b.word}」×${b.count}`).join("、")}`);
+		lines.push(
+			`禁用词：${checks.bannedWords.map((b: { word: string; count: number }) => `「${b.word}」×${b.count}`).join("、")}`,
+		);
 	}
 	if (checks.lockedMissing.length > 0) {
 		lines.push(`锁定原句缺失 ${checks.lockedMissing.length} 条`);

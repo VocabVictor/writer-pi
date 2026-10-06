@@ -18,8 +18,16 @@ export const fiction: GenreConfig = {
 			"已经确立的事实：人物设定、时间线、叙述视角、已经发生的事件。不得与 sources/ 和 context/ 冲突；重大设定变化（人物性格转折、时间线跳跃、视角切换）必须明确标出并更新 context/ 文件",
 	},
 	stages: [
-		{ id: "draft", title: "起草/续写", guidance: "续写前先读 context/ 设定与 sources/ 前文；写作时保持视角与时间线一致" },
-		{ id: "verify", title: "核对", guidance: "核对人物行为是否符合设定、情节因果是否成立、时间与视角是否连续；更新 context/ 中已经发生的事件" },
+		{
+			id: "draft",
+			title: "起草/续写",
+			guidance: "续写前先读 context/ 设定与 sources/ 前文；写作时保持视角与时间线一致",
+		},
+		{
+			id: "verify",
+			title: "核对",
+			guidance: "核对人物行为是否符合设定、情节因果是否成立、时间与视角是否连续；更新 context/ 中已经发生的事件",
+		},
 	],
 	context: {
 		files: [

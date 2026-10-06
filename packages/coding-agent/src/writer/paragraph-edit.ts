@@ -44,7 +44,11 @@ export function applyParagraphEdit(snapshot: string, original: string, replaceme
 			message: `original 在当前文稿中出现 ${count} 次，无法唯一定位。请包含更多上下文使其唯一。`,
 		};
 	}
-	return { ok: true, snapshot: snapshot.replace(wanted, replacement.replace(/\r\n/g, "\n").trim()), message: "已替换。" };
+	return {
+		ok: true,
+		snapshot: snapshot.replace(wanted, replacement.replace(/\r\n/g, "\n").trim()),
+		message: "已替换。",
+	};
 }
 
 function countOccurrences(haystack: string, needle: string): number {

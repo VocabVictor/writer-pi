@@ -214,7 +214,13 @@ function deepMergeObjects(base: Record<string, unknown>, overrides: Record<strin
 /** Tools enabled at startup when `defaultTools` does not change them. */
 // writer-pi: writing-first default toolset. bash/edit/write are not part of the
 // writing flow (drafts are written via save_draft / revise_paragraph).
-export const DEFAULT_TOOL_NAMES: readonly string[] = ["read", "save_draft", "revise_paragraph", "diff_versions", "revert_version"];
+export const DEFAULT_TOOL_NAMES: readonly string[] = [
+	"read",
+	"save_draft",
+	"revise_paragraph",
+	"diff_versions",
+	"revert_version",
+];
 
 function isToolModifier(entry: unknown): boolean {
 	return typeof entry === "string" && (entry.startsWith("+") || entry.startsWith("-"));

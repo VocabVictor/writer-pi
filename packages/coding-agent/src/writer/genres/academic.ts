@@ -20,16 +20,20 @@ export const academic: GenreConfig = {
 	stages: [
 		{ id: "outline", title: "提纲", guidance: "先列出段落要点与每点对应的事实/来源，标注证据不足之处" },
 		{ id: "draft", title: "起草", guidance: "按提纲起草；每个论断紧跟来源或标记【待补】" },
-		{ id: "verify", title: "核对", guidance: "逐句核对：事实/结论是否有来源、限定与结论强度是否与材料一致、引用是否登记" },
+		{
+			id: "verify",
+			title: "核对",
+			guidance: "逐句核对：事实/结论是否有来源、限定与结论强度是否与材料一致、引用是否登记",
+		},
 	],
 	context: {
 		files: [
 			{
 				file: "references.md",
 				title: "引用与来源对应",
-				description: "文稿中出现引用标记（如 [1]、(作者, 年份)）时，在此登记标记与 sources/ 中对应材料的关系；没有对应材料的引用必须删除",
-				template:
-					"# 引用与来源对应\n\n<!-- 格式：- [1] → sources/xxx.md 第 N 点：说明 -->\n",
+				description:
+					"文稿中出现引用标记（如 [1]、(作者, 年份)）时，在此登记标记与 sources/ 中对应材料的关系；没有对应材料的引用必须删除",
+				template: "# 引用与来源对应\n\n<!-- 格式：- [1] → sources/xxx.md 第 N 点：说明 -->\n",
 			},
 		],
 	},
