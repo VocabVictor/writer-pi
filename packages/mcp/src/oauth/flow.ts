@@ -4,7 +4,7 @@
  * Modified to remove SDK/Zod dependencies and use WebCrypto for PKCE.
  */
 
-import type { AuthProvider, McpFetch, UnauthorizedContext } from "../auth-provider.ts";
+import type { AuthProvider, McpFetch, UnauthorizedContext } from "../auth.ts";
 import { isObject } from "../protocol/jsonrpc.ts";
 import {
 	discoverAuthorizationServerMetadata,

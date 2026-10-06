@@ -4,7 +4,7 @@
  * Modified to remove Zod/CORS shims and enforce authorization-server issuer validation.
  */
 
-import type { McpFetch } from "../auth-provider.ts";
+import type { McpFetch } from "../auth.ts";
 import { LATEST_PROTOCOL_VERSION } from "../protocol/types.ts";
 import { OAuthIssuerMismatchError } from "./errors.ts";
 import {

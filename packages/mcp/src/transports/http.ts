@@ -1,4 +1,4 @@
-import type { AuthProvider, McpFetch } from "../auth-provider.ts";
+import type { AuthProvider, McpFetch } from "../auth.ts";
 import {
 	isJsonRpcRequest,
 	isJsonRpcResponse,

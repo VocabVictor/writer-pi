@@ -8,7 +8,7 @@ import {
 	McpSessionExpiredError,
 	StreamableHttpTransport,
 } from "../src/index.ts";
-import { consumeSseStream, type SseEvent } from "../src/transports/streamable-http.ts";
+import { consumeSseStream, type SseEvent } from "../src/transports/http.ts";
 import { closeServers, listen, readBody } from "./helpers.ts";
 
 interface RecordedRequest {
