@@ -123,7 +123,7 @@ describe("discoverUnixServers", () => {
 		const directory = await makeDirectory();
 		const id = serverId(1);
 		const path = join(directory, `${id}.sock`);
-		const child = fork(new URL("fixtures/stale-socket-server.mjs", import.meta.url), [path], {
+		const child = fork(new URL("fixtures/stale.mjs", import.meta.url), [path], {
 			stdio: ["ignore", "ignore", "inherit", "ipc"],
 		});
 		children.add(child);
