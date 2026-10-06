@@ -39,7 +39,7 @@ One host suite:
 
 ```bash
 PI_PROVIDER=openai-codex PI_MODEL=gpt-5.6-sol \
-  npm run eval:host -w packages/evals -- evals/documentation-audit.eval.ts
+  npm run eval:host -w packages/evals -- evals/docaudit.eval.ts
 ```
 
 ## Run documentation comparisons

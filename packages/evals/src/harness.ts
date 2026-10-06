@@ -54,8 +54,6 @@ export type PiCodingAgentHarnessOptions = {
 	tools?: CreateAgentSessionOptions["tools"];
 	customTools?: CreateAgentSessionOptions["customTools"];
 	workspaceFiles?: Readonly<Record<string, string>>;
-	transformSystemPrompt?: (defaultPrompt: string) => string;
-	expectedPiDocumentation?: boolean;
 };
 
 export type PiCodingAgentHarnessWithOutput<TOutput extends JsonValue> = PiCodingAgentHarnessOptions & {
@@ -254,21 +252,6 @@ async function promptAgent(session: AgentSession, input: string, signal: AbortSi
 	return output ?? "";
 }
 
-export function verifySystemPrompt(
-	systemPrompt: string,
-	options: Pick<PiCodingAgentHarnessOptions, "name" | "expectedPiDocumentation">,
-): string {
-	if (options.expectedPiDocumentation === undefined) return systemPrompt;
-	if (!systemPrompt.includes("\n<rules>\n")) {
-		throw new Error(`Pi system prompt lost its rules in the ${options.name} eval variant.`);
-	}
-	const hasDocumentation = systemPrompt.includes("\n<docs>\nPi documentation (read only");
-	if (hasDocumentation !== options.expectedPiDocumentation) {
-		throw new Error(`Pi system prompt does not match the ${options.name} eval variant.`);
-	}
-	return systemPrompt;
-}
-
 async function runPiCodingAgent<TOutput extends JsonValue>(
 	input: PiCodingAgentInput,
 	signal: AbortSignal | undefined,
@@ -285,20 +268,6 @@ async function runPiCodingAgent<TOutput extends JsonValue>(
 	const isolatedHome = join(root, "home");
 	const agentDir = join(isolatedHome, ".pi", "agent");
 	const extensionFactories: InlineExtension[] = [];
-	let forcedSystemPrompt: string | undefined;
-	if (options.transformSystemPrompt) {
-		const transform = options.transformSystemPrompt;
-		extensionFactories.push({
-			name: "eval-system-prompt-transform",
-			hidden: true,
-			factory: (pi) => {
-				pi.on("before_agent_start", ({ systemPrompt }) => {
-					forcedSystemPrompt = transform(systemPrompt);
-					return { systemPrompt: forcedSystemPrompt };
-				});
-			},
-		});
-	}
 
 	let sessionManager: SessionManager | undefined;
 	let session: AgentSession | undefined;
@@ -385,9 +354,7 @@ async function runPiCodingAgent<TOutput extends JsonValue>(
 		if (response === undefined) {
 			throw new Error("Pi eval input must include at least one prompt step.");
 		}
-		// A forced prompt is not recorded in the transcript, so use the one the transform
-		// extension sent; otherwise the replayed transcript prompt is what the provider received.
-		const systemPrompt = forcedSystemPrompt ?? getCurrentSystemPrompt(session.messages);
+		const systemPrompt = getCurrentSystemPrompt(session.messages);
 		const stats = session.getSessionStats();
 		const hasPricing = [model.cost, ...(model.cost.tiers ?? [])].some(
 			({ input: inputCost, output: outputCost, cacheRead, cacheWrite }) =>
@@ -410,7 +377,6 @@ async function runPiCodingAgent<TOutput extends JsonValue>(
 				},
 			},
 		};
-		verifySystemPrompt(systemPrompt, options);
 		const output =
 			"output" in options ? await options.output({ response, session, systemPrompt, agentDir }) : response;
 		result = { output, ...runDiagnostics };
@@ -491,28 +457,8 @@ export function resolveDocumentationVariant(
 	throw new TypeError('PI_EVAL_VARIANT must be "without_docs" or "with_docs".');
 }
 
-export function excludePiDocumentation(defaultPrompt: string): string {
-	const documentationStartMarker = "\n<docs>\n";
-	const documentationEndMarker = "\n</docs>";
-	const documentationStart = defaultPrompt.indexOf(documentationStartMarker);
-	if (documentationStart === -1) throw new Error("Default Pi system prompt has no Pi documentation section.");
-	const documentationEnd = defaultPrompt.indexOf(documentationEndMarker, documentationStart);
-	if (documentationEnd === -1) throw new Error("Default Pi system prompt has no complete Pi documentation section.");
-	const cwdStart = defaultPrompt.lastIndexOf("\n<cwd>\n");
-	if (cwdStart < documentationEnd) throw new Error("Default Pi system prompt has no working-directory section.");
-	return (
-		defaultPrompt.slice(0, documentationStart) + defaultPrompt.slice(documentationEnd + documentationEndMarker.length)
-	);
-}
-
-type DocumentationHarnessOptions = Omit<
-	PiCodingAgentHarnessOptions,
-	"name" | "transformSystemPrompt" | "expectedPiDocumentation"
->;
-type DocumentationHarnessWithOutput<TOutput extends JsonValue> = Omit<
-	PiCodingAgentHarnessWithOutput<TOutput>,
-	"name" | "transformSystemPrompt" | "expectedPiDocumentation"
->;
+type DocumentationHarnessOptions = Omit<PiCodingAgentHarnessOptions, "name">;
+type DocumentationHarnessWithOutput<TOutput extends JsonValue> = Omit<PiCodingAgentHarnessWithOutput<TOutput>, "name">;
 
 export function createPiDocumentationEvalHarness<TOutput extends JsonValue>(
 	options: DocumentationHarnessWithOutput<TOutput>,
@@ -527,11 +473,11 @@ export function createPiDocumentationEvalHarness<TOutput extends JsonValue>(
 		throw new Error("Documentation evals must run in the isolated container sandbox.");
 	}
 	const variant = resolveDocumentationVariant();
+	// The writer prompt carries no docs routing, so the variant only controls the on-disk
+	// documentation baked into the eval image (see docker/entrypoint.ts).
 	return createPiCodingAgentHarness({
 		...options,
 		name: variant,
 		tools: options.tools ?? [...DOCUMENTATION_EVAL_TOOLS],
-		...(variant === "without_docs" ? { transformSystemPrompt: excludePiDocumentation } : {}),
-		expectedPiDocumentation: variant === "with_docs",
 	});
 }

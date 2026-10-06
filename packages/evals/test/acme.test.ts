@@ -8,7 +8,7 @@ import {
 	STREAM_MODEL_ID,
 	STREAM_PROBE_PROMPT,
 	STREAM_PROBE_RESPONSE,
-} from "../evals/acme-server.ts";
+} from "../evals/acme.ts";
 
 type Fixture = {
 	mode: "openai" | "stream";

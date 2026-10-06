@@ -2,13 +2,13 @@ import { execFileSync } from "node:child_process";
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { installCodingAgentConsumer, packReleasePackages } from "../../../scripts/coding-agent-consumer.mjs";
+import { installCodingAgentConsumer, packReleasePackages } from "../../../scripts/consumer.mjs";
 import { getPublicWorkspacePackages } from "../../../scripts/release-packages.mjs";
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 const outputDirectory = process.argv[2];
 if (!outputDirectory || process.argv.length !== 3) {
-	throw new Error("Usage: node packages/evals/docker/install-runtime.mjs <output-directory>");
+	throw new Error("Usage: node packages/evals/docker/installruntime.mjs <output-directory>");
 }
 
 const evalPackage = JSON.parse(readFileSync(join(repositoryRoot, "packages/evals/package.json"), "utf8"));

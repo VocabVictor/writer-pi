@@ -8,8 +8,8 @@ import {
 	OPENAI_PROBE_PROMPT,
 	OPENAI_PROBE_RESPONSE,
 	OPENAI_PROVIDER_ID,
-} from "../evals/acme-server.ts";
-import { inspectAddedModel, inspectProvider, loadConfiguredModelRuntime } from "../evals/configured-runtime.ts";
+} from "../evals/acme.ts";
+import { inspectAddedModel, inspectProvider, loadConfiguredModelRuntime } from "../evals/runtime.ts";
 
 const PROVIDER_ID = OPENAI_PROVIDER_ID;
 const MODEL = {
