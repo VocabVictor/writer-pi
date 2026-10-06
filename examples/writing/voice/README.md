@@ -1,9 +1,9 @@
-# 示例 3：结合文风样本写一篇短文
+# voice 示例：结合文风样本写一篇短文
 
 在这个目录启动 writer-pi：
 
 ```bash
-cd examples/writing/03-voice
+cd examples/writing/voice
 writer-pi
 ```
 

@@ -1,13 +1,11 @@
 node_modules/
 dist/
+# Agent run artifacts (auth, models, sessions) from example agent configs
 .artifacts/
 *.log
 .DS_Store
 *.tsbuildinfo
-# packages/*/node_modules/
 packages/*/dist/
-packages/*/dist-chrome/
-packages/*/dist-firefox/
 packages/ai/src/providers/data/
 packages/ai/src/providers/.model-generation-*/
 *.cpuprofile
@@ -28,27 +26,25 @@ packages/ai/src/providers/.model-generation-*/
 .npm/
 coverage/
 .nyc_output/
-.pi_config/
-tui-debug.log
-compaction-results/
 .opencode/
 syntax.jsonl
 out.jsonl
-pi-*.html
 out.html
+writer-pi-session-*.html
 packages/coding-agent/binaries/
 todo.md
 plans/
-.pi/hf-sessions/
-.pi/hf-sessions-backup/
-collect.sh
-packages/agent/docs/extensions/pi-server-artifact/index.md
 
 # writer-pi: per-project run artifacts (created by the writing flow);
-# voice/ is NOT ignored — 03-voice ships a style sample there
+# sections/ is the longform outline/section workspace, reset on each run;
+# voice/ is NOT ignored — voice ships a style sample there
 examples/writing/*/drafts/
 examples/writing/*/reviews/
+examples/writing/*/sections/
 examples/writing/*/state.json
 examples/writing/*/locked.md
 examples/writing/*/brief.md
-!examples/writing/01-draft-email/brief.md
+!examples/writing/email/brief.md
+!examples/writing/officialdoc/brief.md
+!examples/writing/ecommerce/brief.md
+!examples/writing/poetry/brief.md

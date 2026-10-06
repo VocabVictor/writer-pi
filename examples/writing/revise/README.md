@@ -1,9 +1,9 @@
-# 示例 2：修改一段个人表达，保留立场和语气
+# revise 示例：修改一段个人表达，保留立场和语气
 
 在这个目录启动 writer-pi：
 
 ```bash
-cd examples/writing/02-revise
+cd examples/writing/revise
 writer-pi
 ```
 

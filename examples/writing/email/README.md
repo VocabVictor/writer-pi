@@ -1,9 +1,9 @@
-# 示例 1：根据素材写一封拒绝邀请的邮件
+# email 示例：根据素材写一封拒绝邀请的邮件
 
 在这个目录启动 writer-pi：
 
 ```bash
-cd examples/writing/01-draft-email
+cd examples/writing/email
 writer-pi
 ```
 
