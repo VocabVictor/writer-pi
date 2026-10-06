@@ -25,19 +25,19 @@
 	},
 	"files": {
 		"includes": [
-			"scripts/model-catalog-protocol.ts",
-			"scripts/model-catalog-protocol.test.ts",
+			"scripts/catalogprotocol.ts",
+			"scripts/catalogprotocol.test.ts",
 			"packages/*/src/**/*.ts",
 			"packages/*/test/**/*.ts",
 			"packages/coding-agent/examples/**/*.ts",
 			"packages/agent/examples/**/*.ts",
+			"packages/evals/evals/**/*.ts",
+			"packages/evals/docker/*.ts",
 			"!**/node_modules/**/*",
 			"!**/test-sessions.ts",
 			"!**/models.generated.ts",
-			"!**/*.models.ts",
-			"!packages/mom/data/**/*",
-			"!!**/node_modules"
+			"!**/*.models.ts"
 		]
 	},
-	"plugins": ["./scripts/biome/model-type-comparison.grit"]
+	"plugins": ["./scripts/biome/modeltypecomparison.grit"]
 }

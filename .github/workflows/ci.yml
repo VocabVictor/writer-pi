@@ -36,12 +36,12 @@ jobs:
         run: npm run build
 
       - name: Check
-        run: npm run check
+        run: npm run check:verify
 
       - name: Test
         run: npm test
 
-  mcp-conformance:
+  conformance:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -57,6 +57,6 @@ jobs:
         run: npm ci --ignore-scripts
 
       # Runs pi's MCP client from source against the pinned official conformance suite and fails on
-      # regressions against packages/coding-agent/test/mcp-conformance/baseline.json.
+      # regressions against packages/coding-agent/test/conformance/baseline.json.
       - name: MCP client conformance
-        run: npm run test:mcp-conformance
+        run: npm run test:conformance
