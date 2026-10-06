@@ -23,12 +23,12 @@ import { ROOT_CONVERSATION_ID } from "../types.ts";
 import { AgentDoc, configure, createAgent, resolveAgent, resolveSettings } from "./agent.ts";
 import { createCompaction } from "./compaction.ts";
 import { readContext } from "./context.ts";
+import { type TaskGraph, TaskGraphView, type TaskGraphWatch } from "./graph.ts";
 import { InboxDoc, withdrawQueuedInputs } from "./inbox.ts";
 import { LiveDoc, settleSchedulerOutcome } from "./live.ts";
 import { BUILTIN_TASKS } from "./registry.ts";
 import { type InvocationBinding, TaskScheduler } from "./scheduler.ts";
 import { Submissions } from "./submissions.ts";
-import { type TaskGraph, TaskGraphView, type TaskGraphWatch } from "./task-graph.ts";
 import type {
 	Agent,
 	AgentChange,

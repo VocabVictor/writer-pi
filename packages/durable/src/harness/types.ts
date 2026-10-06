@@ -39,7 +39,7 @@ import type {
 	Tx,
 	WatchHandle,
 } from "../types.ts";
-import type { TaskGraph, TaskGraphWatch } from "./task-graph.ts";
+import type { TaskGraph, TaskGraphWatch } from "./graph.ts";
 import type { UsageState } from "./usage.ts";
 import type { ConversationView } from "./view.ts";
 

@@ -1,5 +1,4 @@
 export { createExpectAssertions, type ExpectLike } from "./assertions.ts";
-export { registerStorageConformance, type StorageConformanceRunner } from "./runner.ts";
 export {
 	STORAGE_MEMORY_SCALES,
 	STORAGE_READ_BENCHMARKS,
@@ -12,8 +11,9 @@ export {
 	seedStorageWriteBenchmark,
 	storageBenchmarkPrimaryRecordCount,
 	TIMING_SCALE,
-} from "./storage-benchmark.ts";
-export { createStorageConformance } from "./storage-conformance.ts";
+} from "./benchmark.ts";
+export { createStorageConformance } from "./conformance.ts";
+export { registerStorageConformance, type StorageConformanceRunner } from "./runner.ts";
 export type {
 	StorageConformanceAssertions,
 	StorageConformanceCase,

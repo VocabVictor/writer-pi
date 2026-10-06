@@ -11,10 +11,10 @@ import {
 	normalizeToLF,
 	restoreLineEndings,
 	stripBom,
-} from "./edit-diff.ts";
+} from "./diff.ts";
 import { requireEnv } from "./env.ts";
-import { withFileMutationQueue } from "./file-mutation-queue.ts";
-import { resolveToolPath } from "./path-utils.ts";
+import { resolveToolPath } from "./paths.ts";
+import { withFileMutationQueue } from "./queue.ts";
 
 const replaceEditSchema = Type.Object({
 	oldText: Type.String({

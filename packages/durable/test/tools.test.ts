@@ -25,9 +25,9 @@ import {
 	type ShellExecResult,
 } from "../src/env/index.ts";
 import { NodeExecutionEnv } from "../src/env/node.ts";
-import { withFileMutationQueue } from "../src/tools/file-mutation-queue.ts";
 import { detectSupportedImageMimeType } from "../src/tools/image.ts";
 import { createBashTool, createEditTool, createReadTool, createWriteTool } from "../src/tools/index.ts";
+import { withFileMutationQueue } from "../src/tools/queue.ts";
 import { DEFAULT_MAX_LINES } from "../src/truncate.ts";
 
 const tempDirs: string[] = [];

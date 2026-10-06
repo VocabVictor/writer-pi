@@ -6,7 +6,7 @@ import type { ToolDiagnostic, ToolRegistration } from "../harness/types.ts";
 import { DEFAULT_MAX_BYTES, DEFAULT_MAX_LINES, formatSize, type TruncationResult, truncateHead } from "../truncate.ts";
 import { requireEnv } from "./env.ts";
 import { detectSupportedImageMimeType } from "./image.ts";
-import { resolveReadToolPath } from "./path-utils.ts";
+import { resolveReadToolPath } from "./paths.ts";
 
 const readSchema = Type.Object({
 	path: Type.String({ description: "Path to the file to read (relative or absolute)" }),

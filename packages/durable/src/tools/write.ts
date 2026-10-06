@@ -3,8 +3,8 @@ import { getOrThrow } from "../env/index.ts";
 import { defineTool } from "../harness/define.ts";
 import type { ToolRegistration } from "../harness/types.ts";
 import { requireEnv } from "./env.ts";
-import { withFileMutationQueue } from "./file-mutation-queue.ts";
-import { resolveToolPath } from "./path-utils.ts";
+import { resolveToolPath } from "./paths.ts";
+import { withFileMutationQueue } from "./queue.ts";
 
 const writeSchema = Type.Object({
 	path: Type.String({ description: "Path to the file to write (relative or absolute)" }),

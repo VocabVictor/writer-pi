@@ -1,5 +1,5 @@
 import { createExpectAssertions, type ExpectLike } from "./assertions.ts";
-import { createStorageConformance } from "./storage-conformance.ts";
+import { createStorageConformance } from "./conformance.ts";
 import type { StorageConformanceProvider } from "./types.ts";
 
 export interface StorageConformanceRunner {
