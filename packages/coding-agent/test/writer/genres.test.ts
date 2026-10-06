@@ -1,9 +1,9 @@
 import { describe, expect, test } from "vitest";
-import { GENRES, getGenre, getGenreOrFallback, inferGenre, fallbackGenreId } from "../../src/writer/genres/index.ts";
-import { BASE_ISSUE_KINDS } from "../../src/writer/genres/types.ts";
-import { allowedKinds, renderGenreRules } from "../../src/writer/genre-instructions.ts";
-import { checkCitations, extractCitations } from "../../src/writer/citations.ts";
 import { runProgramChecks } from "../../src/writer/checker.ts";
+import { checkCitations, extractCitations } from "../../src/writer/citations.ts";
+import { allowedKinds, renderGenreRules } from "../../src/writer/genre-instructions.ts";
+import { fallbackGenreId, GENRES, getGenre, getGenreOrFallback, inferGenre } from "../../src/writer/genres/index.ts";
+import { BASE_ISSUE_KINDS } from "../../src/writer/genres/types.ts";
 import { ISSUE_KINDS } from "../../src/writer/types.ts";
 
 describe("genre registry（体裁配置完整性）", () => {
@@ -48,7 +48,7 @@ describe("genre registry（体裁配置完整性）", () => {
 	test("issue kinds: universal set plus genre-specific extras are all accepted", () => {
 		const academic = allowedKinds(getGenre("academic")!);
 		expect(academic).toContain("unsourced_citation");
-		expect(academic).toContain(...BASE_ISSUE_KINDS);
+		expect(academic).toEqual(expect.arrayContaining([...BASE_ISSUE_KINDS]));
 		expect(ISSUE_KINDS).toContain("consistency");
 	});
 });
@@ -122,16 +122,33 @@ describe("genre-scoped program checks（程序检查按体裁开关）", () => {
 	test("fiction: loose duplicate mode only flags long repeated paragraphs", () => {
 		const short = "他说了一句话，说完就走了。";
 		const story = `${short}\n\n${short}`;
-		const strict = runProgramChecks(story, { briefText: null, lockedSentences: [], checks: { length: false, bannedWords: false, duplicates: "strict", locked: true, citations: false } });
-		const loose = runProgramChecks(story, { briefText: null, lockedSentences: [], checks: { length: false, bannedWords: false, duplicates: "loose", locked: true, citations: false } });
+		const strict = runProgramChecks(story, {
+			briefText: null,
+			lockedSentences: [],
+			checks: { length: false, bannedWords: false, duplicates: "strict", locked: true, citations: false },
+		});
+		const loose = runProgramChecks(story, {
+			briefText: null,
+			lockedSentences: [],
+			checks: { length: false, bannedWords: false, duplicates: "loose", locked: true, citations: false },
+		});
 		expect(strict.duplicateParagraphs.length).toBeGreaterThan(0);
 		expect(loose.duplicateParagraphs).toEqual([]); // too short for the loose threshold
 	});
 
 	test("citations off by default; enabled by the academic config", () => {
 		const base = { briefText: null, lockedSentences: [] };
-		expect(runProgramChecks("见 [2]", { ...base, checks: { length: false, bannedWords: false, duplicates: "off", locked: true, citations: false } }).citations).toEqual([]);
-		const on = runProgramChecks("见 [2]", { ...base, checks: { length: false, bannedWords: false, duplicates: "off", locked: true, citations: true }, referenceTexts: [] });
+		expect(
+			runProgramChecks("见 [2]", {
+				...base,
+				checks: { length: false, bannedWords: false, duplicates: "off", locked: true, citations: false },
+			}).citations,
+		).toEqual([]);
+		const on = runProgramChecks("见 [2]", {
+			...base,
+			checks: { length: false, bannedWords: false, duplicates: "off", locked: true, citations: true },
+			referenceTexts: [],
+		});
 		expect(on.citations).toEqual([{ marker: "[2]", kind: "numeric" }]);
 	});
 });
