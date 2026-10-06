@@ -36,7 +36,7 @@ import {
 } from "./connection.ts";
 import { INTERNAL_SERVER_ERROR_MESSAGE, ServerError, WrongServerError } from "./errors.ts";
 import type { ServerListener } from "./listener.ts";
-import { SessionRouter } from "./session-router.ts";
+import { SessionRouter } from "./router.ts";
 import type { ServerHost, ServerOptions, SessionMetadata } from "./types.ts";
 
 const DEFAULT_HANDSHAKE_TIMEOUT_MS = 5_000;

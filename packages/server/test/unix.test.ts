@@ -121,7 +121,7 @@ describe("Unix listener filesystem lifecycle", () => {
 
 	test("removes a genuinely stale socket before binding", async () => {
 		const path = await makeSocketPath();
-		const child = fork(new URL("fixtures/stale-socket-server.mjs", import.meta.url), [path], {
+		const child = fork(new URL("fixtures/stale.mjs", import.meta.url), [path], {
 			stdio: ["ignore", "ignore", "inherit", "ipc"],
 		});
 		children.add(child);
