@@ -33,6 +33,7 @@
 				"yaml": "2.9.0"
 			},
 			"bin": {
+				"writer-pi": "dist/bundle/cli.js",
 				"pi": "dist/bundle/cli.js"
 			},
 			"engines": {
