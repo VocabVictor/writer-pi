@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Breaking Changes
+
+- Subpath exports no longer carry hyphens in module names. The named exports `./bedrock-provider` and `./bun-oauth` are renamed to `./bedrockprovider` and `./bunoauth`, and the wildcard subpaths follow the renamed files: `./providers/openai-codex` is now `./providers/openaicodex`, `./api/anthropic-messages` is now `./api/anthropic`, `./api/bedrock-converse-stream` is now `./api/bedrock`, and `./utils/oauth-page` is now `./utils/oauthpage`. Consumers importing a subpath with a hyphen must update the import.
+
 ## [1.0.0] - 2026-10-01
 
 ### Added

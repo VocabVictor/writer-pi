@@ -1,4 +1,4 @@
-import { mistralConversationsApi } from "../api/mistral-conversations.lazy.ts";
+import { mistralConversationsApi } from "../api/mistral.lazy.ts";
 import { envApiKeyAuth } from "../auth/helpers.ts";
 import { createProvider, type Provider } from "../models.ts";
 import { MISTRAL_MODELS } from "./mistral.models.ts";

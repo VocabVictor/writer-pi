@@ -1,6 +1,6 @@
 import { lazyStream } from "./api/lazy.ts";
 import { defaultProviderAuthContext as defaultAuthContext } from "./auth/context.ts";
-import { InMemoryCredentialStore } from "./auth/credential-store.ts";
+import { InMemoryCredentialStore } from "./auth/credentialstore.ts";
 import { type AuthResolutionOverrides, ModelsError, resolveProviderAuth } from "./auth/resolve.ts";
 import type {
 	AuthCheck,
@@ -14,7 +14,7 @@ import type {
 	LoginOptions,
 	ProviderAuth,
 } from "./auth/types.ts";
-import { InMemoryModelsStore, type ModelsStore, type ModelsStoreEntry } from "./models-store.ts";
+import { InMemoryModelsStore, type ModelsStore, type ModelsStoreEntry } from "./modelsstore.ts";
 import type {
 	AnyModel,
 	Api,
@@ -58,11 +58,11 @@ import {
 	getModelType,
 	imageErrorResult,
 	isModelType,
-} from "./utils/model-operations.ts";
+} from "./utils/modeloperations.ts";
 import { normalizeContext } from "./utils/transcript.ts";
 
 export { ModelsError, type ModelsErrorCode } from "./auth/resolve.ts";
-export { getModelType, isModelType } from "./utils/model-operations.ts";
+export { getModelType, isModelType } from "./utils/modeloperations.ts";
 
 export interface ModelsPublication {
 	/** Provider-selected persisted catalog. Omit to leave storage unchanged; null deletes it. */

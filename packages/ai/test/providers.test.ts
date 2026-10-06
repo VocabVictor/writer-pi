@@ -4,7 +4,7 @@ import { envApiKeyAuth } from "../src/auth/helpers.ts";
 import type { AuthContext, AuthEvent } from "../src/auth/types.ts";
 import { getModel as getCompatModel, getModels as getCompatModels } from "../src/compat.ts";
 import { createModels, createProvider, getSupportedThinkingLevels } from "../src/models.ts";
-import { InMemoryModelsStore } from "../src/models-store.ts";
+import { InMemoryModelsStore } from "../src/modelsstore.ts";
 import {
 	builtinModels,
 	builtinProviders,
@@ -17,12 +17,12 @@ import {
 	getBuiltinModels,
 	getBuiltinProviders,
 } from "../src/providers/all.ts";
-import { amazonBedrockProvider } from "../src/providers/amazon-bedrock.ts";
+import { amazonBedrockProvider } from "../src/providers/amazonbedrock.ts";
 import { anthropicProvider } from "../src/providers/anthropic.ts";
-import { cloudflareAIGatewayProvider } from "../src/providers/cloudflare-ai-gateway.ts";
-import { cloudflareWorkersAIProvider } from "../src/providers/cloudflare-workers-ai.ts";
+import { cloudflareAIGatewayProvider } from "../src/providers/cloudflareaigateway.ts";
+import { cloudflareWorkersAIProvider } from "../src/providers/cloudflareworkersai.ts";
 import { fauxAssistantMessage, fauxProvider } from "../src/providers/faux.ts";
-import { googleVertexProvider } from "../src/providers/google-vertex.ts";
+import { googleVertexProvider } from "../src/providers/googlevertex.ts";
 import type {
 	Api,
 	DeferredCancelOptions,
@@ -31,7 +31,7 @@ import type {
 	Model,
 	ProviderStreams,
 } from "../src/types.ts";
-import { AssistantMessageEventStream } from "../src/utils/event-stream.ts";
+import { AssistantMessageEventStream } from "../src/utils/eventstream.ts";
 import { normalizeContext } from "../src/utils/transcript.ts";
 
 function fakeAuthContext(env: Record<string, string>, files: string[] = []): AuthContext {

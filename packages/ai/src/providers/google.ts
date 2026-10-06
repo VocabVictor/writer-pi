@@ -1,4 +1,4 @@
-import { googleGenerativeAIApi } from "../api/google-generative-ai.lazy.ts";
+import { googleGenerativeAIApi } from "../api/google.lazy.ts";
 import { envApiKeyAuth } from "../auth/helpers.ts";
 import { createProvider, type Provider } from "../models.ts";
 import { GOOGLE_MODELS } from "./google.models.ts";

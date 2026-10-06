@@ -9,22 +9,26 @@ import type { Api, Context, ImageContent, Model, StreamOptions, Tool, ToolResult
 
 type StreamOptionsWithExtras = StreamOptions & Record<string, unknown>;
 
-import { StringEnum } from "../src/utils/typebox-helpers.ts";
-import { hasAzureOpenAICredentials, resolveAzureDeploymentName } from "./azure-utils.ts";
-import { hasBedrockCredentials } from "./bedrock-utils.ts";
-import { hasCloudflareAiGatewayCredentials, hasCloudflareWorkersAICredentials } from "./cloudflare-utils.ts";
-import { resolveApiKey } from "./oauth.ts";
+import { StringEnum } from "../src/utils/typeboxhelpers.ts";
+import { hasAzureOpenAICredentials, resolveAzureDeploymentName } from "./azureutils.ts";
+import { hasBedrockCredentials } from "./bedrockutils.ts";
+import { hasCloudflareAiGatewayCredentials, hasCloudflareWorkersAICredentials } from "./cloudflareutils.ts";
+import { allowCredentialRefresh, readApiKey, resolveApiKey } from "./oauth.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Resolve OAuth tokens at module level (async, runs before tests)
-const oauthTokens = await Promise.all([
-	resolveApiKey("anthropic"),
-	resolveApiKey("github-copilot"),
-	resolveApiKey("openai-codex"),
-]);
-const [anthropicOAuthToken, githubCopilotToken, openaiCodexToken] = oauthTokens;
+let anthropicOAuthToken = readApiKey("anthropic");
+let githubCopilotToken = readApiKey("github-copilot");
+let openaiCodexToken = readApiKey("openai-codex");
+
+beforeAll(async () => {
+	// Refresh expired OAuth tokens only once tests run; module load and skip-only runs stay network-free.
+	allowCredentialRefresh();
+	anthropicOAuthToken = (await resolveApiKey("anthropic")) ?? anthropicOAuthToken;
+	githubCopilotToken = (await resolveApiKey("github-copilot")) ?? githubCopilotToken;
+	openaiCodexToken = (await resolveApiKey("openai-codex")) ?? openaiCodexToken;
+});
 
 // Calculator tool definition (same as examples)
 // Note: Using StringEnum helper because Google's API doesn't support anyOf/const patterns
@@ -225,7 +229,7 @@ async function handleImage<TApi extends Api>(model: Model<TApi>, options?: Strea
 	}
 
 	// Read the test image
-	const imagePath = join(__dirname, "data", "red-circle.png");
+	const imagePath = join(__dirname, "data", "redcircle.png");
 	const imageBuffer = readFileSync(imagePath);
 	const base64Image = imageBuffer.toString("base64");
 
@@ -1483,30 +1487,30 @@ describe("Generate E2E Tests", () => {
 
 	describe("OpenAI Codex Provider (gpt-5.5 via WebSocket)", () => {
 		const llm = getModel("openai-codex", "gpt-5.5");
-		const wsOptions = { apiKey: openaiCodexToken, transport: "websocket" as const };
+		const wsOptions = () => ({ apiKey: openaiCodexToken, transport: "websocket" as const });
 
 		it.skipIf(!openaiCodexToken)("should complete basic text generation", { retry: 3 }, async () => {
-			await basicTextGeneration(llm, wsOptions);
+			await basicTextGeneration(llm, wsOptions());
 		});
 
 		it.skipIf(!openaiCodexToken)("should handle tool calling", { retry: 3 }, async () => {
-			await handleToolCall(llm, wsOptions);
+			await handleToolCall(llm, wsOptions());
 		});
 
 		it.skipIf(!openaiCodexToken)("should handle streaming", { retry: 3 }, async () => {
-			await handleStreaming(llm, wsOptions);
+			await handleStreaming(llm, wsOptions());
 		});
 
 		it.skipIf(!openaiCodexToken)("should handle thinking with reasoningEffort xhigh", { retry: 3 }, async () => {
-			await handleThinking(llm, { ...wsOptions, reasoningEffort: "xhigh" });
+			await handleThinking(llm, { ...wsOptions(), reasoningEffort: "xhigh" });
 		});
 
 		it.skipIf(!openaiCodexToken)("should handle multi-turn with thinking and tools", { retry: 3 }, async () => {
-			await multiTurn(llm, { ...wsOptions, reasoningEffort: "xhigh" });
+			await multiTurn(llm, { ...wsOptions(), reasoningEffort: "xhigh" });
 		});
 
 		it.skipIf(!openaiCodexToken)("should handle image input", { retry: 3 }, async () => {
-			await handleImage(llm, wsOptions);
+			await handleImage(llm, wsOptions());
 		});
 	});
 

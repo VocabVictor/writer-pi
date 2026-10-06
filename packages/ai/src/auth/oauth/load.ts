@@ -37,17 +37,17 @@ export const loadAnthropicOAuth = async (): Promise<OAuthAuth> => {
 
 export const loadOpenAICodexOAuth = async (): Promise<OAuthAuth> => {
 	if (bundledLoaders) return bundledLoaders.openaiCodex();
-	return ((await importOAuthModule("./openai-codex.ts")) as { openaiCodexOAuth: OAuthAuth }).openaiCodexOAuth;
+	return ((await importOAuthModule("./openaicodex.ts")) as { openaiCodexOAuth: OAuthAuth }).openaiCodexOAuth;
 };
 
 export const loadOpenAIChatGPTOAuth = async (): Promise<OAuthAuth> => {
 	if (bundledLoaders) return bundledLoaders.openaiChatGPT();
-	return ((await importOAuthModule("./openai-chatgpt.ts")) as { openaiChatGPTOAuth: OAuthAuth }).openaiChatGPTOAuth;
+	return ((await importOAuthModule("./openaichatgpt.ts")) as { openaiChatGPTOAuth: OAuthAuth }).openaiChatGPTOAuth;
 };
 
 export const loadGitHubCopilotOAuth = async (): Promise<OAuthAuth> => {
 	if (bundledLoaders) return bundledLoaders.githubCopilot();
-	return ((await importOAuthModule("./github-copilot.ts")) as { githubCopilotOAuth: OAuthAuth }).githubCopilotOAuth;
+	return ((await importOAuthModule("./githubcopilot.ts")) as { githubCopilotOAuth: OAuthAuth }).githubCopilotOAuth;
 };
 
 export const loadOpenRouterOAuth = async (): Promise<OAuthAuth> => {
@@ -57,7 +57,7 @@ export const loadOpenRouterOAuth = async (): Promise<OAuthAuth> => {
 
 export const loadKimiCodingOAuth = async (): Promise<OAuthAuth> => {
 	if (bundledLoaders) return bundledLoaders.kimiCoding();
-	return ((await importOAuthModule("./kimi-coding.ts")) as { kimiCodingOAuth: OAuthAuth }).kimiCodingOAuth;
+	return ((await importOAuthModule("./kimicoding.ts")) as { kimiCodingOAuth: OAuthAuth }).kimiCodingOAuth;
 };
 
 export const loadMetaOAuth = async (): Promise<OAuthAuth> => {

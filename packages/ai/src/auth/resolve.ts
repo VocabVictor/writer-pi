@@ -1,8 +1,8 @@
 import type { ProviderEnv } from "../types.ts";
 import { operationSignal, raceWithAbortSignal } from "../utils/abort.ts";
-import { ModelsError } from "../utils/models-error.ts";
+import { ModelsError } from "../utils/modelserror.ts";
 
-export { ModelsError, type ModelsErrorCode } from "../utils/models-error.ts";
+export { ModelsError, type ModelsErrorCode } from "../utils/modelserror.ts";
 
 import type {
 	ApiKeyAuth,

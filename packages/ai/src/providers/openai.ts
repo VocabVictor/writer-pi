@@ -1,4 +1,4 @@
-import { openAIResponsesApi } from "../api/openai-responses.lazy.ts";
+import { openAIResponsesApi } from "../api/openairesponses.lazy.ts";
 import { envApiKeyAuth, lazyOAuth } from "../auth/helpers.ts";
 import { loadOpenAIChatGPTOAuth } from "../auth/oauth/load.ts";
 import { createProvider, type Provider } from "../models.ts";

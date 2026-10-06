@@ -6,20 +6,20 @@ export { Type } from "typebox";
 // live under "@earendil-works/pi-ai/providers/*", API implementations under
 // "@earendil-works/pi-ai/api/*", the old global API under
 // "@earendil-works/pi-ai/compat".
-export type { AnthropicEffort, AnthropicOptions, AnthropicThinkingDisplay } from "./api/anthropic-messages.ts";
-export type { AzureOpenAIResponsesOptions } from "./api/azure-openai-responses.ts";
-export type { BedrockOptions, BedrockThinkingDisplay } from "./api/bedrock-converse-stream.ts";
-export type { GoogleOptions } from "./api/google-generative-ai.ts";
-export type { GoogleApiThinkingLevel, ResolvedGoogleThinkingLevel } from "./api/google-shared.ts";
-export type { GoogleVertexOptions } from "./api/google-vertex.ts";
+export type { AnthropicEffort, AnthropicOptions, AnthropicThinkingDisplay } from "./api/anthropic.ts";
+export type { AzureOpenAIResponsesOptions } from "./api/azureopenairesponses.ts";
+export type { BedrockOptions, BedrockThinkingDisplay } from "./api/bedrock.ts";
+export type { GoogleOptions } from "./api/google.ts";
+export type { GoogleApiThinkingLevel, ResolvedGoogleThinkingLevel } from "./api/googleshared.ts";
+export type { GoogleVertexOptions } from "./api/googlevertex.ts";
 export * from "./api/lazy.ts";
-export type { MistralOptions } from "./api/mistral-conversations.ts";
-export type { OpenAICodexResponsesOptions, OpenAICodexWebSocketDebugStats } from "./api/openai-codex-responses.ts";
-export type { OpenAICompletionsOptions } from "./api/openai-completions.ts";
-export type { OpenAIResponsesOptions } from "./api/openai-responses.ts";
-export type { PiMessagesEvent, PiMessagesOptions, PiMessagesRewriteImpact } from "./api/pi-messages.ts";
+export type { MistralOptions } from "./api/mistral.ts";
+export type { OpenAICodexResponsesOptions, OpenAICodexWebSocketDebugStats } from "./api/openaicodexresponses.ts";
+export type { OpenAICompletionsOptions } from "./api/openaicompletions.ts";
+export type { OpenAIResponsesOptions } from "./api/openairesponses.ts";
+export type { PiMessagesEvent, PiMessagesOptions, PiMessagesRewriteImpact } from "./api/pimessages.ts";
 export * from "./auth/context.ts";
-export * from "./auth/credential-store.ts";
+export * from "./auth/credentialstore.ts";
 export * from "./auth/helpers.ts";
 export * from "./auth/types.ts";
 export type {
@@ -29,20 +29,20 @@ export type {
 	OAuthPrompt,
 	OAuthSelectOption,
 	OAuthSelectPrompt,
-} from "./compat/extension-oauth-types.ts";
+} from "./compat/oauthtypes.ts";
 export * from "./models.ts";
-export * from "./models-store.ts";
+export * from "./modelsstore.ts";
 export * from "./providers/faux.ts";
-export * from "./session-resources.ts";
+export * from "./sessionresources.ts";
 export * from "./types.ts";
-export * from "./utils/assistant-message-frame.ts";
+export * from "./utils/assistantmessageframe.ts";
 export * from "./utils/diagnostics.ts";
-export * from "./utils/event-stream.ts";
-export * from "./utils/json-parse.ts";
+export * from "./utils/eventstream.ts";
+export * from "./utils/jsonparse.ts";
 export * from "./utils/overflow.ts";
 export * from "./utils/retry.ts";
 export { contentText, getSystemMessageText, renderSystemMessageUpdate } from "./utils/text.ts";
 export * from "./utils/transcript.ts";
-export * from "./utils/typebox-helpers.ts";
+export * from "./utils/typeboxhelpers.ts";
 export { uuidv7 } from "./utils/uuid.ts";
 export * from "./utils/validation.ts";

@@ -1,4 +1,4 @@
-import { anthropicMessagesApi } from "../api/anthropic-messages.lazy.ts";
+import { anthropicMessagesApi } from "../api/anthropic.lazy.ts";
 import { lazyOAuth } from "../auth/helpers.ts";
 import { loadAnthropicOAuth } from "../auth/oauth/load.ts";
 import type { ApiKeyAuth } from "../auth/types.ts";
@@ -11,7 +11,7 @@ import {
 	ANTHROPIC_ORGANIZATION_ID_ENV,
 	ANTHROPIC_SERVICE_ACCOUNT_ID_ENV,
 	ANTHROPIC_WORKSPACE_ID_ENV,
-} from "../env-api-keys.ts";
+} from "../envapikeys.ts";
 import { createProvider, type Provider } from "../models.ts";
 import type { ProviderEnv } from "../types.ts";
 import { ANTHROPIC_MODELS } from "./anthropic.models.ts";

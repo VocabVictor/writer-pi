@@ -5,9 +5,9 @@
  * It is only intended for CLI use, not browser environments.
  */
 
-import { getProviderEnvValue } from "../../utils/provider-env.ts";
+import { getProviderEnvValue } from "../../utils/providerenv.ts";
 import type { OAuthAuth, OAuthCredential, ProviderAuthInteraction } from "../types.ts";
-import { startOAuthCallbackServer, waitForCallbackOrManualInput } from "./callback-server.ts";
+import { startOAuthCallbackServer, waitForCallbackOrManualInput } from "./callbackserver.ts";
 import { generatePKCE } from "./pkce.ts";
 
 const decode = (s: string) => atob(s);

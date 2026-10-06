@@ -1,4 +1,4 @@
-import { openAICompletionsApi } from "../api/openai-completions.lazy.ts";
+import { openAICompletionsApi } from "../api/openaicompletions.lazy.ts";
 import { envApiKeyAuth } from "../auth/helpers.ts";
 import { createProvider, type Provider } from "../models.ts";
 import { MOONSHOTAI_MODELS } from "./moonshotai.models.ts";

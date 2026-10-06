@@ -1,21 +1,25 @@
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { complete, getModel } from "../src/compat.ts";
 import type { Api, AssistantMessage, Context, Model, StreamOptions, UserMessage } from "../src/types.ts";
 
 type StreamOptionsWithExtras = StreamOptions & Record<string, unknown>;
 
-import { hasAzureOpenAICredentials, resolveAzureDeploymentName } from "./azure-utils.ts";
-import { hasBedrockCredentials } from "./bedrock-utils.ts";
-import { hasCloudflareAiGatewayCredentials, hasCloudflareWorkersAICredentials } from "./cloudflare-utils.ts";
-import { resolveApiKey } from "./oauth.ts";
+import { hasAzureOpenAICredentials, resolveAzureDeploymentName } from "./azureutils.ts";
+import { hasBedrockCredentials } from "./bedrockutils.ts";
+import { hasCloudflareAiGatewayCredentials, hasCloudflareWorkersAICredentials } from "./cloudflareutils.ts";
+import { allowCredentialRefresh, readApiKey, resolveApiKey } from "./oauth.ts";
 
-// Resolve OAuth tokens at module level (async, runs before tests)
-const oauthTokens = await Promise.all([
-	resolveApiKey("anthropic"),
-	resolveApiKey("github-copilot"),
-	resolveApiKey("openai-codex"),
-]);
-const [anthropicOAuthToken, githubCopilotToken, openaiCodexToken] = oauthTokens;
+let anthropicOAuthToken = readApiKey("anthropic");
+let githubCopilotToken = readApiKey("github-copilot");
+let openaiCodexToken = readApiKey("openai-codex");
+
+beforeAll(async () => {
+	// Refresh expired OAuth tokens only once tests run; module load and skip-only runs stay network-free.
+	allowCredentialRefresh();
+	anthropicOAuthToken = (await resolveApiKey("anthropic")) ?? anthropicOAuthToken;
+	githubCopilotToken = (await resolveApiKey("github-copilot")) ?? githubCopilotToken;
+	openaiCodexToken = (await resolveApiKey("openai-codex")) ?? openaiCodexToken;
+});
 
 async function testEmptyMessage<TApi extends Api>(llm: Model<TApi>, options: StreamOptionsWithExtras = {}) {
 	// Test with completely empty content array

@@ -10,35 +10,35 @@
  * ModelManager migration.
  */
 
-export * from "./api/anthropic-messages.lazy.ts";
-export * from "./api/azure-openai-responses.lazy.ts";
-export * from "./api/bedrock-converse-stream.lazy.ts";
-export * from "./api/google-generative-ai.lazy.ts";
-export * from "./api/google-vertex.lazy.ts";
-export * from "./api/mistral-conversations.lazy.ts";
-export * from "./api/openai-codex-responses.lazy.ts";
-export * from "./api/openai-completions.lazy.ts";
-export * from "./api/openai-responses.lazy.ts";
-export * from "./api/pi-messages.lazy.ts";
-export * from "./env-api-keys.ts";
-export * from "./image-models.ts";
+export * from "./api/anthropic.lazy.ts";
+export * from "./api/azureopenairesponses.lazy.ts";
+export * from "./api/bedrock.lazy.ts";
+export * from "./api/google.lazy.ts";
+export * from "./api/googlevertex.lazy.ts";
+export * from "./api/mistral.lazy.ts";
+export * from "./api/openaicodexresponses.lazy.ts";
+export * from "./api/openaicompletions.lazy.ts";
+export * from "./api/openairesponses.lazy.ts";
+export * from "./api/pimessages.lazy.ts";
+export * from "./envapikeys.ts";
+export * from "./imagemodels.ts";
 export * from "./images.ts";
-export * from "./images-api-registry.ts";
+export * from "./imagesapiregistry.ts";
 export * from "./index.ts";
-export * from "./legacy-api-aliases.ts";
-export * from "./providers/images/register-builtins.ts";
+export * from "./legacyapialiases.ts";
+export * from "./providers/images/registerbuiltins.ts";
 
-import { anthropicMessagesApi } from "./api/anthropic-messages.lazy.ts";
-import { azureOpenAIResponsesApi } from "./api/azure-openai-responses.lazy.ts";
-import { bedrockConverseStreamApi } from "./api/bedrock-converse-stream.lazy.ts";
-import { googleGenerativeAIApi } from "./api/google-generative-ai.lazy.ts";
-import { googleVertexApi } from "./api/google-vertex.lazy.ts";
-import { mistralConversationsApi } from "./api/mistral-conversations.lazy.ts";
-import { openAICodexResponsesApi } from "./api/openai-codex-responses.lazy.ts";
-import { openAICompletionsApi } from "./api/openai-completions.lazy.ts";
-import { openAIResponsesApi } from "./api/openai-responses.lazy.ts";
-import { piMessagesApi } from "./api/pi-messages.lazy.ts";
-import { getEnvApiKey } from "./env-api-keys.ts";
+import { anthropicMessagesApi } from "./api/anthropic.lazy.ts";
+import { azureOpenAIResponsesApi } from "./api/azureopenairesponses.lazy.ts";
+import { bedrockConverseStreamApi } from "./api/bedrock.lazy.ts";
+import { googleGenerativeAIApi } from "./api/google.lazy.ts";
+import { googleVertexApi } from "./api/googlevertex.lazy.ts";
+import { mistralConversationsApi } from "./api/mistral.lazy.ts";
+import { openAICodexResponsesApi } from "./api/openaicodexresponses.lazy.ts";
+import { openAICompletionsApi } from "./api/openaicompletions.lazy.ts";
+import { openAIResponsesApi } from "./api/openairesponses.lazy.ts";
+import { piMessagesApi } from "./api/pimessages.lazy.ts";
+import { getEnvApiKey } from "./envapikeys.ts";
 import type { ModelsApiStreamOptions } from "./models.ts";
 import { builtinModels, getBuiltinModel, getBuiltinModels, getBuiltinProviders } from "./providers/all.ts";
 

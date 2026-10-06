@@ -7,4 +7,4 @@ export type {
 	OAuthPrompt,
 	OAuthSelectOption,
 	OAuthSelectPrompt,
-} from "./compat/extension-oauth-types.ts";
+} from "./compat/oauthtypes.ts";

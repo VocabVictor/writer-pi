@@ -1,7 +1,7 @@
-import { anthropicMessagesApi } from "../api/anthropic-messages.lazy.ts";
-import { openAICompletionsApi } from "../api/openai-completions.lazy.ts";
-import { openrouterImagesApi } from "../api/openrouter-images.lazy.ts";
-import { typesafeSystemOneApi } from "../api/typesafe-system-one.lazy.ts";
+import { anthropicMessagesApi } from "../api/anthropic.lazy.ts";
+import { openAICompletionsApi } from "../api/openaicompletions.lazy.ts";
+import { openrouterImagesApi } from "../api/openrouterimages.lazy.ts";
+import { typesafeSystemOneApi } from "../api/typesafesystemone.lazy.ts";
 import { envApiKeyAuth, lazyOAuth } from "../auth/helpers.ts";
 import { loadOpenRouterOAuth } from "../auth/oauth/load.ts";
 import { createProvider, type Provider } from "../models.ts";

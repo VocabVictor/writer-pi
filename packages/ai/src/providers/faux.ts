@@ -18,7 +18,7 @@ import type {
 	TranscriptContext,
 	Usage,
 } from "../types.ts";
-import { createAssistantMessageEventStream } from "../utils/event-stream.ts";
+import { createAssistantMessageEventStream } from "../utils/eventstream.ts";
 import { getSystemMessageText } from "../utils/text.ts";
 
 const DEFAULT_API = "faux";

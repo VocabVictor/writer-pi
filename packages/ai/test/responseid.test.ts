@@ -1,13 +1,20 @@
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { complete, getModel } from "../src/compat.ts";
 import type { Api, Context, Model, StreamOptions } from "../src/types.ts";
-import { hasAzureOpenAICredentials, resolveAzureDeploymentName } from "./azure-utils.ts";
-import { resolveApiKey } from "./oauth.ts";
+import { hasAzureOpenAICredentials, resolveAzureDeploymentName } from "./azureutils.ts";
+import { allowCredentialRefresh, readApiKey, resolveApiKey } from "./oauth.ts";
 
 type StreamOptionsWithExtras = StreamOptions & Record<string, unknown>;
 
-const oauthTokens = await Promise.all([resolveApiKey("github-copilot"), resolveApiKey("openai-codex")]);
-const [githubCopilotToken, openaiCodexToken] = oauthTokens;
+let githubCopilotToken = readApiKey("github-copilot");
+let openaiCodexToken = readApiKey("openai-codex");
+
+beforeAll(async () => {
+	// Refresh expired OAuth tokens only once tests run; module load and skip-only runs stay network-free.
+	allowCredentialRefresh();
+	githubCopilotToken = (await resolveApiKey("github-copilot")) ?? githubCopilotToken;
+	openaiCodexToken = (await resolveApiKey("openai-codex")) ?? openaiCodexToken;
+});
 
 async function expectResponseId<TApi extends Api>(model: Model<TApi>, options: StreamOptionsWithExtras = {}) {
 	const context: Context = {

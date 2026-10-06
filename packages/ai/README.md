@@ -42,6 +42,7 @@ Unified LLM API with provider collections, automatic auth resolution, token and 
   - [Observing Provider Stream Events](#observing-provider-stream-events)
 - [Custom Providers](#custom-providers)
   - [createProvider()](#createprovider)
+  - [writer-pi's Built-in Default Provider](#writer-pis-built-in-default-provider)
   - [Calling API Implementations Directly](#calling-api-implementations-directly)
   - [OpenAI Compatibility Settings](#openai-compatibility-settings)
 - [Faux Provider for Tests](#faux-provider-for-tests)
@@ -248,7 +249,7 @@ For apps that only need specific providers, there is one factory per built-in pr
 import { anthropicProvider } from '@earendil-works/pi-ai/providers/anthropic';
 import { openaiProvider } from '@earendil-works/pi-ai/providers/openai';
 import { openrouterProvider } from '@earendil-works/pi-ai/providers/openrouter';
-import { amazonBedrockProvider } from '@earendil-works/pi-ai/providers/amazon-bedrock';
+import { amazonBedrockProvider } from '@earendil-works/pi-ai/providers/amazonbedrock';
 // ...one module per provider in the Supported Providers list
 
 const models = createModels();
@@ -944,7 +945,7 @@ The `llama-cpp-classify` API turns a chat model served by llama.cpp's `llama-ser
 
 ```typescript
 import { createProvider } from '@earendil-works/pi-ai';
-import { llamaCppClassifyApi } from '@earendil-works/pi-ai/api/llama-cpp-classify.lazy';
+import { llamaCppClassifyApi } from '@earendil-works/pi-ai/api/classify.lazy';
 
 const provider = createProvider({
   id: 'local-llama',
@@ -1214,7 +1215,7 @@ Callbacks are awaited in stream order, so slow callbacks delay stream consumptio
 
 ```typescript
 import { createModels, createProvider, envApiKeyAuth, type Model } from '@earendil-works/pi-ai';
-import { openAICompletionsApi } from '@earendil-works/pi-ai/api/openai-completions.lazy';
+import { openAICompletionsApi } from '@earendil-works/pi-ai/api/openaicompletions.lazy';
 
 const ollamaModel: Model<'openai-completions'> = {
   id: 'llama-3.1-8b',
@@ -1259,8 +1260,8 @@ const proxy = createProvider({
 Mixed-API providers pass a map keyed by `model.api`; each model dispatches to its API's implementation:
 
 ```typescript
-import { anthropicMessagesApi } from '@earendil-works/pi-ai/api/anthropic-messages.lazy';
-import { openAIResponsesApi } from '@earendil-works/pi-ai/api/openai-responses.lazy';
+import { anthropicMessagesApi } from '@earendil-works/pi-ai/api/anthropic.lazy';
+import { openAIResponsesApi } from '@earendil-works/pi-ai/api/openairesponses.lazy';
 
 const gateway = createProvider({
   id: 'my-gateway',
@@ -1348,13 +1349,19 @@ const ollamaReasoningModel: Model<'openai-completions'> = {
 };
 ```
 
+### writer-pi's Built-in Default Provider
+
+writer-pi (the writing agent built on this library) registers a built-in default provider so it works before any login: a self-hosted GLM vLLM endpoint, Anthropic Messages compatible. It is an ordinary `createProvider()` provider — one `Model<"anthropic-messages">` with the endpoint as `baseUrl`, zero cost, a 1M context window, and 128k max tokens (thinking blocks count toward `max_tokens`, so long articles need the headroom).
+
+The endpoint has no real auth: the provider's `ApiKeyAuth.resolve` returns a placeholder token so the Anthropic client sends a valid header, while a stored credential still wins. The default base URL and model id override through `FREE_GLM_BASE_URL` and `FREE_GLM_MODEL`, and `PI_NO_LOCAL_LLM=1` (a writer-pi setting, not pi-ai) keeps the provider out of the registry. Model resolution still prefers user-configured providers — stored credentials, `models.json` overrides, and runtime keys — ahead of this default.
+
 ### Calling API Implementations Directly
 
 The API implementations are importable on their own. Each module exports exactly `stream` and `streamSimple` with that API's full option typing. Direct calls bypass provider auth and context normalization — pass `apiKey` explicitly and wrap the context in `normalizeContext()`:
 
 ```typescript
 import { normalizeContext } from '@earendil-works/pi-ai';
-import { stream } from '@earendil-works/pi-ai/api/anthropic-messages';
+import { stream } from '@earendil-works/pi-ai/api/anthropic';
 
 const s = stream(claudeModel, normalizeContext(context), {
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -1363,21 +1370,22 @@ const s = stream(claudeModel, normalizeContext(context), {
 });
 ```
 
-Built-in API implementations live under `./api/<api-id>`:
+Built-in API implementations live under `./api/<module>`, one one-word module per wire API:
 
-| API id | Options type |
-|--------|--------------|
-| `anthropic-messages` | `AnthropicOptions` |
-| `openai-completions` | `OpenAICompletionsOptions` |
-| `openai-responses` | `OpenAIResponsesOptions` |
-| `openai-codex-responses` | `OpenAICodexResponsesOptions` |
-| `azure-openai-responses` | `AzureOpenAIResponsesOptions` |
-| `google-generative-ai` | `GoogleOptions` |
-| `google-vertex` | `GoogleVertexOptions` |
-| `mistral-conversations` | `MistralOptions` |
-| `bedrock-converse-stream` | `BedrockOptions` |
+| Module | API id | Options type |
+|--------|--------|--------------|
+| `anthropic` | `anthropic-messages` | `AnthropicOptions` |
+| `openaicompletions` | `openai-completions` | `OpenAICompletionsOptions` |
+| `openairesponses` | `openai-responses` | `OpenAIResponsesOptions` |
+| `openaicodexresponses` | `openai-codex-responses` | `OpenAICodexResponsesOptions` |
+| `azureopenairesponses` | `azure-openai-responses` | `AzureOpenAIResponsesOptions` |
+| `google` | `google-generative-ai` | `GoogleOptions` |
+| `googlevertex` | `google-vertex` | `GoogleVertexOptions` |
+| `mistral` | `mistral-conversations` | `MistralOptions` |
+| `bedrock` | `bedrock-converse-stream` | `BedrockOptions` |
+| `pimessages` | `pi-messages` | `PiMessagesOptions` |
 
-Importing an implementation module loads its SDK. The `./api/<id>.lazy` wrappers (used by the provider factories) defer that load to the first request when the runtime or bundler supports dynamic import chunking. Legacy raw API subpaths from older releases (`./anthropic`, `./google`, `./mistral`, `./openai-completions`, ...) were removed; use `@earendil-works/pi-ai/api/<api-id>`.
+Importing an implementation module loads its SDK. The `./api/<module>.lazy` wrappers (used by the provider factories) defer that load to the first request when the runtime or bundler supports dynamic import chunking. Legacy raw API subpaths from older releases (`./anthropic`, `./google`, `./mistral`, `./openai-completions`, ...) were removed; use `@earendil-works/pi-ai/api/<module>` (for example `@earendil-works/pi-ai/api/anthropic`).
 
 ### OpenAI Compatibility Settings
 
@@ -1671,7 +1679,7 @@ Rules:
 - `@earendil-works/pi-ai/providers/all` imports every built-in provider factory and all catalogs. Use it only when you want the full built-in set.
 - With code splitting, provider SDKs stay in lazy chunks and load on first request.
 - Without code splitting, bundlers fold reachable lazy API implementations into the single bundle. A single-provider bundle then includes that provider's SDK; `providers/all` includes all statically visible SDKs. Bedrock is the exception: its AWS SDK implementation is loaded through a bundler-opaque Node-only import.
-- Importing `@earendil-works/pi-ai/api/<api-id>` directly loads that API implementation and its SDK immediately.
+- Importing `@earendil-works/pi-ai/api/<module>` directly loads that API implementation and its SDK immediately.
 
 Avoid `@earendil-works/pi-ai/compat` in new bundled apps; it preserves the old global API and imports the full built-in catalog surface.
 
@@ -1689,7 +1697,7 @@ Bedrock is Node-only. Add it like any other provider:
 
 ```typescript
 import { createModels } from '@earendil-works/pi-ai';
-import { amazonBedrockProvider } from '@earendil-works/pi-ai/providers/amazon-bedrock';
+import { amazonBedrockProvider } from '@earendil-works/pi-ai/providers/amazonbedrock';
 
 const models = createModels();
 models.setProvider(amazonBedrockProvider());
@@ -1698,8 +1706,8 @@ models.setProvider(amazonBedrockProvider());
 In normal Node package usage and code-split bundles, Bedrock loads its AWS SDK implementation lazily. For a standalone single-file bundle that must include Bedrock support, register the implementation module explicitly:
 
 ```typescript
-import { setBedrockProviderModule } from '@earendil-works/pi-ai/api/bedrock-converse-stream.lazy';
-import { bedrockProviderModule } from '@earendil-works/pi-ai/bedrock-provider';
+import { setBedrockProviderModule } from '@earendil-works/pi-ai/api/bedrock.lazy';
+import { bedrockProviderModule } from '@earendil-works/pi-ai/bedrockprovider';
 
 setBedrockProviderModule(bedrockProviderModule);
 ```
@@ -1838,7 +1846,7 @@ Compat is a strict superset of the root entrypoint, so a file can switch its imp
 | `stream(model, ctx, opts)` (env-key injection) | `models.stream(model, ctx, opts)` (provider auth resolution) |
 | `registerApiProvider({ api, stream, streamSimple })` | `createProvider({ id, auth, models, api })` + `models.setProvider()` |
 | `getEnvApiKey('openai')` | `await models.getAuth(model.provider)` |
-| `streamAnthropic(model, ctx, opts)` | `stream` from `@earendil-works/pi-ai/api/anthropic-messages`, or a provider in a collection |
+| `streamAnthropic(model, ctx, opts)` | `stream` from `@earendil-works/pi-ai/api/anthropic`, or a provider in a collection |
 | `registerFauxProvider()` | `fauxProvider()` + `models.setProvider()` |
 | `getImageModel('openrouter', id)` / `generateImages(model, ctx, { apiKey })` | `models.getModelOfType('image', 'openrouter', id)` / `models.generateImages(model, ctx)` |
 
@@ -1856,18 +1864,18 @@ Adding a new LLM provider requires changes across multiple files. The layered la
 - Add the provider name to `KnownProvider` (for example `"amazon-bedrock"`)
 - Add the options type to `ApiOptionsMap`
 
-#### 2. API Implementation (`src/api/<api-id>.ts`, only for a new API)
+#### 2. API Implementation (`src/api/<module>.ts`, only for a new API)
 
-Create a new API implementation file (for example `bedrock-converse-stream.ts`) that exports exactly `stream` and `streamSimple`, plus:
+Create a new API implementation file (for example `bedrock.ts`) that exports exactly `stream` and `streamSimple`, plus:
 
 - An options interface extending `StreamOptions` (for example `BedrockOptions`)
 - Message conversion functions to transform the `TranscriptContext` messages to provider format; read the prompt and tools from the transcript with `getInitialSystemMessage()`, `getCurrentTools()`, and `resolveTranscript()`
 - Tool conversion if the provider supports tools
 - Response parsing to emit standardized events (`text`, `tool_call`, `thinking`, `usage`, `stop`)
 
-Add a lazy wrapper `src/api/<api-id>.lazy.ts` (`<name>Api()` via `lazyApi()`) so providers can reference the implementation without importing its SDK. Add any root-level `export type` re-exports in `src/index.ts` that should remain available from `@earendil-works/pi-ai`.
+Add a lazy wrapper `src/api/<module>.lazy.ts` (`<name>Api()` via `lazyApi()`) so providers can reference the implementation without importing its SDK. Add any root-level `export type` re-exports in `src/index.ts` that should remain available from `@earendil-works/pi-ai`.
 
-#### 3. Model Generation (`scripts/generate-models.ts`)
+#### 3. Model Generation (`scripts/models.ts`)
 
 - Add logic to fetch and parse models from the provider's source (e.g., models.dev API)
 - Map chat/tool-capable provider data to `Model`, image-generation data to `ImageModel`, and models.dev `type: "decision"` entries to `ClassifierModel`; hydration groups the ignored `src/providers/data/<id>.json` values by API while stable `src/providers/<id>.models.ts` wrappers derive exact model/API types directly from those JSON keys
@@ -1889,24 +1897,23 @@ Create or update test files to cover the new provider:
 - `tokens.test.ts` - Token usage reporting
 - `abort.test.ts` - Request cancellation
 - `empty.test.ts` - Empty message handling
-- `context-overflow.test.ts` - Context limit errors
-- `image-limits.test.ts` - Image support (if applicable)
-- `unicode-surrogate.test.ts` - Unicode handling
-- `tool-call-without-result.test.ts` - Orphaned tool calls
-- `image-tool-result.test.ts` - Images in tool results
-- `total-tokens.test.ts` - Token counting accuracy
-- `cross-provider-handoff.test.ts` - Cross-provider context replay
+- `contextoverflow.test.ts` - Context limit errors
+- `unicodesurrogate.test.ts` - Unicode handling
+- `toolcallwithoutresult.test.ts` - Orphaned tool calls
+- `imagetoolresult.test.ts` - Images in tool results
+- `totaltokens.test.ts` - Token counting accuracy
+- `crossproviderhandoff.test.ts` - Cross-provider context replay
 - `providers.test.ts` - Provider listing and auth resolution
 
-For `cross-provider-handoff.test.ts`, add at least one provider/model pair. If the provider exposes multiple model families (for example GPT and Claude), add at least one pair per family.
+For `crossproviderhandoff.test.ts`, add at least one provider/model pair. If the provider exposes multiple model families (for example GPT and Claude), add at least one pair per family.
 
-For providers with non-standard auth (AWS, Google Vertex), create a utility like `bedrock-utils.ts` with credential detection helpers.
+For providers with non-standard auth (AWS, Google Vertex), create a utility like `bedrockutils.ts` with credential detection helpers.
 
 #### 6. Coding Agent Integration (`../coding-agent/`)
 
-Update `src/core/model-resolver.ts`:
+Update `src/core/modelresolver.ts`:
 
-- Add a default model ID for the provider in `DEFAULT_MODELS`
+- Add a default model ID for the provider in `defaultModelPerProvider`
 
 Update `src/cli/args.ts`:
 

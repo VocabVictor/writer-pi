@@ -1,4 +1,4 @@
-import { piMessagesApi } from "../api/pi-messages.lazy.ts";
+import { piMessagesApi } from "../api/pimessages.lazy.ts";
 import { envApiKeyAuth, lazyOAuth } from "../auth/helpers.ts";
 import { loadRadiusOAuth } from "../auth/oauth/load.ts";
 import type { Provider } from "../models.ts";
@@ -10,7 +10,7 @@ import {
 	getRadiusModelsFromConfig,
 	loadRadiusGatewayConfig,
 	normalizeRadiusGatewayUrl,
-} from "./radius-config.ts";
+} from "./radiusconfig.ts";
 
 export interface RadiusProviderOptions {
 	id?: string;

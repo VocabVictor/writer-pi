@@ -8,7 +8,7 @@
 	"sideEffects": [
 		"./dist/compat.js",
 		"./dist/images.js",
-		"./dist/providers/images/register-builtins.js"
+		"./dist/providers/images/registerbuiltins.js"
 	],
 	"exports": {
 		".": {
@@ -39,13 +39,13 @@
 			"types": "./dist/oauth.d.ts",
 			"import": "./dist/oauth.js"
 		},
-		"./bedrock-provider": {
-			"types": "./dist/bedrock-provider.d.ts",
-			"import": "./dist/bedrock-provider.js"
+		"./bedrockprovider": {
+			"types": "./dist/bedrockprovider.d.ts",
+			"import": "./dist/bedrockprovider.js"
 		},
-		"./bun-oauth": {
-			"types": "./dist/bun-oauth.d.ts",
-			"import": "./dist/bun-oauth.js"
+		"./bunoauth": {
+			"types": "./dist/bunoauth.d.ts",
+			"import": "./dist/bunoauth.js"
 		}
 	},
 	"bin": {
@@ -57,10 +57,10 @@
 	],
 	"scripts": {
 		"clean": "shx rm -rf dist",
-		"generate-models": "node scripts/generate-models.ts --strict",
-		"hydrate-model-data": "node scripts/generate-models.ts --strict --data-only",
-		"generate-model-catalog": "node scripts/generate-models.ts --strict --json-only --json-output ../../.artifacts/model-catalog",
-		"check:model-data": "node scripts/check-model-data.ts",
+		"generate-models": "node scripts/models.ts --strict",
+		"hydrate-model-data": "node scripts/models.ts --strict --data-only",
+		"generate-model-catalog": "node scripts/models.ts --strict --json-only --json-output ../../.artifacts/model-catalog",
+		"check:model-data": "node scripts/check.ts",
 		"build": "npm run generate-models && npm run build:offline",
 		"build:offline": "npm run check:model-data && tsc -p tsconfig.build.json && shx rm -rf dist/providers/data && shx cp -r src/providers/data dist/providers/data",
 		"test": "vitest --run",

@@ -7,13 +7,13 @@
  * manual prompt so remote/headless sessions can paste the redirect URL when
  * the browser cannot reach the loopback server.
  *
- * NOTE: This module uses node:http (via callback-server.ts) for the OAuth callback server.
+ * NOTE: This module uses node:http (via callbackserver.ts) for the OAuth callback server.
  * It is only intended for CLI use, not browser environments.
  */
 
-import { getProviderEnvValue } from "../../utils/provider-env.ts";
+import { getProviderEnvValue } from "../../utils/providerenv.ts";
 import type { OAuthAuth, OAuthCredential, ProviderAuthInteraction } from "../types.ts";
-import { startOAuthCallbackServer, waitForCallbackOrManualInput } from "./callback-server.ts";
+import { startOAuthCallbackServer, waitForCallbackOrManualInput } from "./callbackserver.ts";
 import { generatePKCE } from "./pkce.ts";
 
 const AUTHORIZE_URL = "https://openrouter.ai/auth";

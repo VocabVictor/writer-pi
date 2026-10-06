@@ -5,14 +5,14 @@
  * gateway; only the interactive browser authorization endpoint is discovered.
  * Model catalog loading is owned by the Radius provider.
  *
- * NOTE: This module uses node:http (via callback-server.ts) for the OAuth callback server.
+ * NOTE: This module uses node:http (via callbackserver.ts) for the OAuth callback server.
  * It is only intended for CLI use, not browser environments.
  */
 
-import { normalizeRadiusGatewayUrl } from "../../providers/radius-config.ts";
+import { normalizeRadiusGatewayUrl } from "../../providers/radiusconfig.ts";
 import type { OAuthAuth, OAuthCredential, ProviderAuthInteraction } from "../types.ts";
-import { startOAuthCallbackServer } from "./callback-server.ts";
-import { pollOAuthDeviceCodeFlow } from "./device-code.ts";
+import { startOAuthCallbackServer } from "./callbackserver.ts";
+import { pollOAuthDeviceCodeFlow } from "./devicecode.ts";
 import { generatePKCE } from "./pkce.ts";
 
 const CALLBACK_HOST = "127.0.0.1";

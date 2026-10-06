@@ -1,12 +1,12 @@
-import { anthropicMessagesApi } from "../api/anthropic-messages.lazy.ts";
-import { googleGenerativeAIApi } from "../api/google-generative-ai.lazy.ts";
-import { openAICompletionsApi } from "../api/openai-completions.lazy.ts";
-import { openAIResponsesApi } from "../api/openai-responses.lazy.ts";
-import { typesafeSystemOneApi } from "../api/typesafe-system-one.lazy.ts";
+import { anthropicMessagesApi } from "../api/anthropic.lazy.ts";
+import { googleGenerativeAIApi } from "../api/google.lazy.ts";
+import { openAICompletionsApi } from "../api/openaicompletions.lazy.ts";
+import { openAIResponsesApi } from "../api/openairesponses.lazy.ts";
+import { typesafeSystemOneApi } from "../api/typesafesystemone.lazy.ts";
 import { envApiKeyAuth } from "../auth/helpers.ts";
 import { createProvider, type Provider } from "../models.ts";
 import { OPENCODE_CLASSIFIER_MODELS, OPENCODE_MODELS } from "./opencode.models.ts";
-import { withOpenCodeSessionHeader } from "./opencode-headers.ts";
+import { withOpenCodeSessionHeader } from "./opencodeheaders.ts";
 
 type OpenCodeApi = "anthropic-messages" | "google-generative-ai" | "openai-completions" | "openai-responses";
 

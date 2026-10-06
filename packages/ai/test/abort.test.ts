@@ -1,15 +1,20 @@
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { complete, getModel, stream } from "../src/compat.ts";
 import type { Api, Context, Model, StreamOptions } from "../src/types.ts";
 
 type StreamOptionsWithExtras = StreamOptions & Record<string, unknown>;
 
-import { hasAzureOpenAICredentials, resolveAzureDeploymentName } from "./azure-utils.ts";
-import { hasBedrockCredentials } from "./bedrock-utils.ts";
-import { resolveApiKey } from "./oauth.ts";
+import { hasAzureOpenAICredentials, resolveAzureDeploymentName } from "./azureutils.ts";
+import { hasBedrockCredentials } from "./bedrockutils.ts";
+import { allowCredentialRefresh, readApiKey, resolveApiKey } from "./oauth.ts";
 
-// Resolve OAuth tokens at module level (async, runs before tests)
-const [openaiCodexToken] = await Promise.all([resolveApiKey("openai-codex")]);
+let openaiCodexToken = readApiKey("openai-codex");
+
+beforeAll(async () => {
+	// Refresh expired OAuth tokens only once tests run; module load and skip-only runs stay network-free.
+	allowCredentialRefresh();
+	openaiCodexToken = (await resolveApiKey("openai-codex")) ?? openaiCodexToken;
+});
 
 async function testAbortSignal<TApi extends Api>(llm: Model<TApi>, options: StreamOptionsWithExtras = {}) {
 	const context: Context = {

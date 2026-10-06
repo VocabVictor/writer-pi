@@ -3,6 +3,7 @@
 	"compilerOptions": {
 		"outDir": "./dist",
 		"rootDir": "./src",
+		// NodeNext, not base's Node16: generated src/providers/*.models.ts use `with { type: "json" }` import attributes, which Node16 rejects.
 		"module": "NodeNext",
 		"moduleResolution": "NodeNext"
 	},

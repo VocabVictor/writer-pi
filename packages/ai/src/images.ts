@@ -1,6 +1,6 @@
-import "./providers/images/register-builtins.ts";
+import "./providers/images/registerbuiltins.ts";
 
-import { getImagesApiProvider } from "./images-api-registry.ts";
+import { getImagesApiProvider } from "./imagesapiregistry.ts";
 import type { AssistantImages, ImageApi, ImageModel, ImagesContext, ProviderImagesOptions } from "./types.ts";
 
 function resolveImagesApiProvider(api: ImageApi) {

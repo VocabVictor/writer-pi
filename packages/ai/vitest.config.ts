@@ -8,6 +8,9 @@ export default defineConfig({
 		globals: true,
 		environment: "node",
 		testTimeout: 30000, // 30 seconds for API calls
+		// Tests run offline by default; OAuth refresh opts in via allowCredentialRefresh() from test/oauth.ts.
+		env: { PI_OFFLINE: "1" },
+		unstubEnvs: true,
 		reporters: process.env.GITHUB_ACTIONS ? ["dot", "github-actions"] : ["dot"],
 		silent: "passed-only",
 	},

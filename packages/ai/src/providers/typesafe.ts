@@ -1,4 +1,4 @@
-import { typesafeSystemOneApi } from "../api/typesafe-system-one.lazy.ts";
+import { typesafeSystemOneApi } from "../api/typesafesystemone.lazy.ts";
 import { envApiKeyAuth } from "../auth/helpers.ts";
 import { createProvider, type Provider } from "../models.ts";
 import { TYPESAFE_CLASSIFIER_MODELS } from "./typesafe.models.ts";

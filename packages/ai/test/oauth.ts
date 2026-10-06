@@ -8,6 +8,7 @@
 import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { homedir } from "os";
 import { dirname, join } from "path";
+import { vi } from "vitest";
 import type { OAuthCredentials } from "../src/auth/types.ts";
 import { builtinProviders } from "../src/providers/all.ts";
 
@@ -48,6 +49,36 @@ function saveAuthStorage(storage: AuthStorage): void {
 }
 
 /**
+ * Read the stored API key for a provider from ~/.pi/agent/auth.json without any network I/O.
+ *
+ * For API key credentials, returns the key directly.
+ * For OAuth credentials, returns the stored access token even when expired, so collection-time
+ * gating still sees the credential and activated tests can refresh it.
+ */
+export function readApiKey(provider: string): string | undefined {
+	const storage = loadAuthStorage();
+	const entry = storage[provider];
+
+	if (!entry) return undefined;
+
+	if (entry.type === "api_key") {
+		return entry.key;
+	}
+
+	if (entry.type === "oauth") {
+		const hasOAuth = builtinProviders().some((candidate) => candidate.id === provider && candidate.auth.oauth);
+		return hasOAuth ? entry.access : undefined;
+	}
+
+	return undefined;
+}
+
+/** Opts this test file's OAuth refresh into the network; PI_OFFLINE stays set for everything else. */
+export function allowCredentialRefresh(): void {
+	vi.stubEnv("PI_OFFLINE", undefined);
+}
+
+/**
  * Resolve API key for a provider from ~/.pi/agent/auth.json
  *
  * For API key credentials, returns the key directly.
@@ -68,16 +99,18 @@ export async function resolveApiKey(provider: string): Promise<string | undefine
 		const oauth = builtinProviders().find((candidate) => candidate.id === provider)?.auth.oauth;
 		if (!oauth) return undefined;
 		let credential = entry;
-		try {
-			if (Date.now() >= credential.expires) {
+		if (Date.now() >= credential.expires) {
+			// The offline gate blocks refresh so a default run stays network-free.
+			if (process.env.PI_OFFLINE) return undefined;
+			try {
 				credential = await oauth.refresh(credential, new AbortController().signal);
+			} catch (error) {
+				console.log(JSON.stringify(error));
+				return undefined;
 			}
-		} catch (error) {
-			console.log(JSON.stringify(error));
-			return undefined;
+			storage[provider] = credential;
+			saveAuthStorage(storage);
 		}
-		storage[provider] = credential;
-		saveAuthStorage(storage);
 		return (await oauth.toAuth(credential)).apiKey;
 	}
 

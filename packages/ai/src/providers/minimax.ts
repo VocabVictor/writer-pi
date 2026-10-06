@@ -1,4 +1,4 @@
-import { anthropicMessagesApi } from "../api/anthropic-messages.lazy.ts";
+import { anthropicMessagesApi } from "../api/anthropic.lazy.ts";
 import { envApiKeyAuth } from "../auth/helpers.ts";
 import { createProvider, type Provider } from "../models.ts";
 import { MINIMAX_MODELS } from "./minimax.models.ts";

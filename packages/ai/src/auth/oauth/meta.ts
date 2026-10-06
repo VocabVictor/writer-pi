@@ -14,7 +14,7 @@
  */
 
 import type { OAuthAuth, OAuthCredential, ProviderAuthInteraction } from "../types.ts";
-import { pollOAuthDeviceCodeFlow } from "./device-code.ts";
+import { pollOAuthDeviceCodeFlow } from "./devicecode.ts";
 
 // Muse Code CLI client id.
 const CLIENT_ID = "1031625952748946";

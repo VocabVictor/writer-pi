@@ -1,21 +1,28 @@
-import { describe, expect, it } from "vitest";
+import { once } from "node:events";
+import http from "node:http";
+import type { AddressInfo } from "node:net";
+import { beforeAll, describe, expect, it } from "vitest";
 import { getModel, getModels, stream } from "../src/compat.ts";
 import type { Api, Context, Model, StreamOptions } from "../src/types.ts";
 
 type StreamOptionsWithExtras = StreamOptions & Record<string, unknown>;
 
-import { hasAzureOpenAICredentials, resolveAzureDeploymentName } from "./azure-utils.ts";
-import { hasBedrockCredentials } from "./bedrock-utils.ts";
-import { hasCloudflareAiGatewayCredentials, hasCloudflareWorkersAICredentials } from "./cloudflare-utils.ts";
-import { resolveApiKey } from "./oauth.ts";
+import { hasAzureOpenAICredentials, resolveAzureDeploymentName } from "./azureutils.ts";
+import { hasBedrockCredentials } from "./bedrockutils.ts";
+import { hasCloudflareAiGatewayCredentials, hasCloudflareWorkersAICredentials } from "./cloudflareutils.ts";
+import { allowCredentialRefresh, readApiKey, resolveApiKey } from "./oauth.ts";
 
-// Resolve OAuth tokens at module level (async, runs before tests)
-const oauthTokens = await Promise.all([
-	resolveApiKey("anthropic"),
-	resolveApiKey("github-copilot"),
-	resolveApiKey("openai-codex"),
-]);
-const [anthropicOAuthToken, githubCopilotToken, openaiCodexToken] = oauthTokens;
+let anthropicOAuthToken = readApiKey("anthropic");
+let githubCopilotToken = readApiKey("github-copilot");
+let openaiCodexToken = readApiKey("openai-codex");
+
+beforeAll(async () => {
+	// Refresh expired OAuth tokens only once tests run; module load and skip-only runs stay network-free.
+	allowCredentialRefresh();
+	anthropicOAuthToken = (await resolveApiKey("anthropic")) ?? anthropicOAuthToken;
+	githubCopilotToken = (await resolveApiKey("github-copilot")) ?? githubCopilotToken;
+	openaiCodexToken = (await resolveApiKey("openai-codex")) ?? openaiCodexToken;
+});
 
 async function testTokensOnAbort<TApi extends Api>(llm: Model<TApi>, options: StreamOptionsWithExtras = {}) {
 	const context: Context = {
@@ -84,6 +91,68 @@ async function testTokensOnAbort<TApi extends Api>(llm: Model<TApi>, options: St
 }
 
 describe("Token Statistics on Abort", () => {
+	// Xiaomi and other OpenAI-compatible endpoints send usage only in the final chunk,
+	// so an aborted stream has no token counts; this pins the transport contract the
+	// xiaomi blocks below assert against the live API without needing credentials.
+	describe("OpenAI-compatible transport (mocked endpoint)", () => {
+		it("reports zero usage when aborted before the final usage chunk", async () => {
+			const server = http.createServer((req, res) => {
+				if (req.method !== "POST" || req.url !== "/chat/completions") {
+					res.writeHead(404).end();
+					return;
+				}
+				res.writeHead(200, {
+					"content-type": "text/event-stream",
+					"cache-control": "no-cache",
+					connection: "keep-alive",
+				});
+				res.on("error", () => {});
+				// Stream deltas but never reach the usage-bearing final chunk; the abort closes the socket.
+				for (let i = 0; i < 200; i++) {
+					res.write(
+						`data: ${JSON.stringify({
+							id: "chatcmpl-mock",
+							object: "chat.completion.chunk",
+							created: 0,
+							model: "mimo-v2.5-pro",
+							choices: [{ index: 0, delta: { content: "word " }, finish_reason: null }],
+						})}\n\n`,
+					);
+				}
+			});
+			server.listen(0, "127.0.0.1");
+			await once(server, "listening");
+
+			try {
+				const { port } = server.address() as AddressInfo;
+				const xiaomi = getModel("xiaomi", "mimo-v2.5-pro");
+				const llm = { ...xiaomi, baseUrl: `http://127.0.0.1:${port}` };
+				const context: Context = {
+					messages: [{ role: "user", content: "Write a long poem.", timestamp: Date.now() }],
+					systemPrompt: "You are a helpful assistant.",
+				};
+
+				const controller = new AbortController();
+				const response = stream(llm, context, { apiKey: "mock-key", signal: controller.signal });
+				let text = "";
+				for await (const event of response) {
+					if (event.type === "text_delta") {
+						text += event.delta;
+						if (text.length >= 50) controller.abort();
+					}
+				}
+
+				const msg = await response.result();
+				expect(msg.stopReason).toBe("aborted");
+				expect(msg.usage.input).toBe(0);
+				expect(msg.usage.output).toBe(0);
+			} finally {
+				server.close();
+				await once(server, "close");
+			}
+		});
+	});
+
 	describe.skipIf(!process.env.GEMINI_API_KEY)("Google Provider", () => {
 		const llm = getModel("google", "gemini-2.5-flash");
 
@@ -252,12 +321,7 @@ describe("Token Statistics on Abort", () => {
 	describe.skipIf(!process.env.XIAOMI_API_KEY)("Xiaomi MiMo (API billing) Provider", () => {
 		const llm = getModel("xiaomi", "mimo-v2.5-pro");
 
-		// FIXME(xiaomi): Xiaomi's Anthropic-compatible stream does not populate
-		// usage in the message_start event the way Anthropic does — usage only
-		// arrives at message_stop. Aborting mid-stream therefore loses input/output
-		// token counts. Non-streaming usage works (see total-tokens.test.ts).
-		// Re-enable once upstream sends usage in message_start.
-		it.skip("should include token stats when aborted mid-stream", { retry: 3, timeout: 30000 }, async () => {
+		it("should include token stats when aborted mid-stream", { retry: 3, timeout: 30000 }, async () => {
 			await testTokensOnAbort(llm);
 		});
 	});
@@ -265,9 +329,7 @@ describe("Token Statistics on Abort", () => {
 	describe.skipIf(!process.env.XIAOMI_TOKEN_PLAN_CN_API_KEY)("Xiaomi MiMo Token Plan (CN) Provider", () => {
 		const llm = getModel("xiaomi-token-plan-cn", "mimo-v2.5-pro");
 
-		// FIXME(xiaomi): see the API-billing block above — same upstream streaming
-		// usage limitation applies to Token Plan endpoints.
-		it.skip("should include token stats when aborted mid-stream", { retry: 3, timeout: 30000 }, async () => {
+		it("should include token stats when aborted mid-stream", { retry: 3, timeout: 30000 }, async () => {
 			await testTokensOnAbort(llm);
 		});
 	});
@@ -275,9 +337,7 @@ describe("Token Statistics on Abort", () => {
 	describe.skipIf(!process.env.XIAOMI_TOKEN_PLAN_AMS_API_KEY)("Xiaomi MiMo Token Plan (AMS) Provider", () => {
 		const llm = getModel("xiaomi-token-plan-ams", "mimo-v2.5-pro");
 
-		// FIXME(xiaomi): see the API-billing block above — same upstream streaming
-		// usage limitation applies to Token Plan endpoints.
-		it.skip("should include token stats when aborted mid-stream", { retry: 3, timeout: 30000 }, async () => {
+		it("should include token stats when aborted mid-stream", { retry: 3, timeout: 30000 }, async () => {
 			await testTokensOnAbort(llm);
 		});
 	});
@@ -285,9 +345,7 @@ describe("Token Statistics on Abort", () => {
 	describe.skipIf(!process.env.XIAOMI_TOKEN_PLAN_SGP_API_KEY)("Xiaomi MiMo Token Plan (SGP) Provider", () => {
 		const llm = getModel("xiaomi-token-plan-sgp", "mimo-v2.5-pro");
 
-		// FIXME(xiaomi): see the API-billing block above — same upstream streaming
-		// usage limitation applies to Token Plan endpoints.
-		it.skip("should include token stats when aborted mid-stream", { retry: 3, timeout: 30000 }, async () => {
+		it("should include token stats when aborted mid-stream", { retry: 3, timeout: 30000 }, async () => {
 			await testTokensOnAbort(llm);
 		});
 	});

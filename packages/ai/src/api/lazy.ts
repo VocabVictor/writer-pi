@@ -1,5 +1,5 @@
 import type { Api, AssistantMessage, AssistantMessageEvent, Model, ProviderStreams } from "../types.ts";
-import { AssistantMessageEventStream } from "../utils/event-stream.ts";
+import { AssistantMessageEventStream } from "../utils/eventstream.ts";
 
 function createSetupErrorMessage(model: Model<Api>, error: unknown): AssistantMessage {
 	return {
