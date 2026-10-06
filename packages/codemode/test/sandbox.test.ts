@@ -2,7 +2,7 @@ import { fileURLToPath } from "node:url";
 import vm from "node:vm";
 import { afterEach, describe, expect, it } from "vitest";
 import { CodemodeSandbox, type CodemodeTool } from "../src/index.ts";
-import { PRELUDE_SOURCE } from "../src/runtime/prelude-source.ts";
+import { PRELUDE_SOURCE } from "../src/runtime/prelude.ts";
 
 const sandboxes: CodemodeSandbox[] = [];
 

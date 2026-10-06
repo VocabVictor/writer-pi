@@ -12,7 +12,7 @@
  */
 import { parentPort, workerData } from "node:worker_threads";
 import { JSException, type JSValueHandle, MAX_STACK_SIZE, QuickJS } from "quickjs-wasi";
-import { PRELUDE_SOURCE } from "./prelude-source.ts";
+import { PRELUDE_SOURCE } from "./prelude.ts";
 import { isHostToWorkerMessage, type WorkerData, type WorkerToHostMessage } from "./protocol.ts";
 
 function post(message: WorkerToHostMessage): void {
