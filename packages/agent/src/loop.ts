@@ -15,7 +15,7 @@ import {
 	toToolDeclaration,
 	validateToolArguments,
 } from "@earendil-works/pi-ai";
-import { getDefaultStreamFn } from "./stream-fn.ts";
+import { getDefaultStreamFn } from "./stream.ts";
 import type {
 	AgentContext,
 	AgentEvent,

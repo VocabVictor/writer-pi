@@ -11,8 +11,8 @@ import {
 	type Transport,
 	toToolDeclaration,
 } from "@earendil-works/pi-ai";
-import { runAgentLoop, runAgentLoopContinue } from "./agent-loop.ts";
-import { getDefaultStreamFn } from "./stream-fn.ts";
+import { runAgentLoop, runAgentLoopContinue } from "./loop.ts";
+import { getDefaultStreamFn } from "./stream.ts";
 import type {
 	AfterToolCallContext,
 	AfterToolCallResult,

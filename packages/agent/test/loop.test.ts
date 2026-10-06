@@ -8,8 +8,8 @@ import {
 } from "@earendil-works/pi-ai";
 import { Type } from "typebox";
 import { describe, expect, it } from "vitest";
-import { agentLoop, agentLoopContinue, runAgentLoop, runToolCall } from "../src/agent-loop.ts";
 import { setDefaultStreamFn } from "../src/index.ts";
+import { agentLoop, agentLoopContinue, runAgentLoop, runToolCall } from "../src/loop.ts";
 import type {
 	AgentContext,
 	AgentEvent,

@@ -1,7 +1,7 @@
 /**
  * An Agent with the tools of an MCP server plus a codemode tool that calls them from JavaScript.
  *
- *   ANTHROPIC_API_KEY=... node packages/agent/examples/mcp-codemode/main.ts \
+ *   ANTHROPIC_API_KEY=... node packages/agent/examples/mcpcodemode/main.ts \
  *     npx -y @modelcontextprotocol/server-filesystem .
  *
  * The arguments are the command that starts a stdio MCP server.
