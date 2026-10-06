@@ -6,10 +6,25 @@
 
 - Draft version notes are stored in `state.json` and shown by `/drafts`.
 - `save_draft` creates the writing scaffold when it is the first write in a directory (print mode).
+- A built-in default provider for the self-hosted GLM vLLM endpoint (`free-glm`), Anthropic Messages compatible with no real auth. A fresh install with no credentials resolves to it; `FREE_GLM_BASE_URL` and `FREE_GLM_MODEL` override it, and stored credentials or a settings default still win.
+- Nineteen experimental genres: `official-doc`, `ecommerce` (product detail page, promo copy, and livestream script subtypes), `github-readme`, `cover-letter`, `news`, `cs-blog`, `critique`, `speech`, `script`, `marketing`, `tech-docs`, `fairy`, `microcopy`, `minutes`, `abstract`, `manual`, `interview`, `popsci`, and `workreport`. They are registered in the genre registry, carry longform configurations, and are covered by genre inference, and their selection is marked experimental in the status line.
+- A sectioned long-form flow: `/draft --long`, or a length target of at least 1,000 characters, writes an outline first, then one section per turn under `sections/`, assembles the manuscript, and hands it to the normal review loop. An interrupted run resumes from `state.json` on restart; two unparseable outlines fall back to the single-round draft flow.
+- `--format` for the writing commands (e.g. `--format=latex`), backed by a format registry (`markdown`, `latex`, `docx`, `doc`, `code`). Drafts are saved with the format's extension (`latex` saves `.tex`); the binary `docx`/`doc` formats keep Markdown content and the `.md` extension this round, changing only the structure conventions. An unknown format warns and is ignored, and the `defaultFormat`/`defaultTemplate`/`defaultGenre` settings keys seed the dimensions.
+- Genre-conditioned AI-tone checks (a Chinese lexicon plus structural patterns, weighted and normalized per thousand characters; non-Chinese text skips the lexicon) run in the checking round per the genre's `checks.aitone` switch: formal genres use a higher threshold, literary genres add fiction fingerprint words. Findings surface as review leads.
 
 ### Changed
 
 - `/arminsayshi` now plays a 3D version in fullscreen mode, with one cube per pixel of Armin. The 3D pi logo easter egg on header logo click is replaced by it.
+- Ambient environment keys (e.g. `ANTHROPIC_AUTH_TOKEN`) now rank below the built-in GLM default in initial model selection. Stored credentials, a runtime key, and the settings default still win.
+
+### Fixed
+
+- `state.json` writes are serialized per project and land via a temp-file rename, so a concurrent flow-turn write can no longer read a truncated file (which reset the project state) or lose interleaved updates.
+- Author-year citations now accept multilingual author names (Latin diacritics, Cyrillic, Arabic, kana, hangul) and require a full-name match for alphabetic scripts, so common suffixes no longer pass as a match.
+
+### Removed
+
+- Removed the coding tools (`bash`, `edit`, `write`, `grep`, `find`, `ls`, `powershell`) from the tool registry. writer-pi is a writing agent: sessions start with `read` and the writing tools (`save_draft`, `revise_paragraph`, `diff_versions`, `revert_version`), and shell and file-editing tools are no longer registered.
 
 ## [1.0.0] - 2026-10-01
 
