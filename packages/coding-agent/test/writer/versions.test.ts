@@ -1,10 +1,16 @@
-import { describe, expect, test } from "vitest";
-import { mkdtemp, rm, writeFile, readFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { ensureProject } from "../../src/writer/project.ts";
-import { draftPathFor, saveDraft, revertTo, diffDrafts, parseDraftVersion, readDraft } from "../../src/writer/versions.ts";
-import { readState } from "../../src/writer/project.ts";
+import { describe, expect, test } from "vitest";
+import { ensureProject, readState } from "../../src/writer/project.ts";
+import {
+	diffDrafts,
+	draftPathFor,
+	parseDraftVersion,
+	readDraft,
+	revertTo,
+	saveDraft,
+} from "../../src/writer/versions.ts";
 
 async function makeTempProject(): Promise<string> {
 	const root = await mkdtemp(join(tmpdir(), "writer-pi-test-"));
@@ -25,6 +31,7 @@ describe("saveDraft", () => {
 			const state = await readState(root);
 			expect(state.currentDraft).toBe("drafts/draft-002.md");
 			expect(state.draftCount).toBe(2);
+			expect(state.draftNotes).toEqual({ "1": "初稿", "2": "修改" });
 		} finally {
 			await rm(root, { recursive: true, force: true });
 		}
@@ -55,8 +62,8 @@ describe("revertTo", () => {
 			expect(reverted!.path).toBe("drafts/draft-003.md");
 			expect(await readDraft(root, reverted!.path)).toBe("版本一");
 			// all three files exist
-			expect(await readDraft(root, draftPathFor(root, 1))).toBe("版本一");
-			expect(await readDraft(root, draftPathFor(root, 2))).toBe("版本二");
+			expect(await readDraft(root, draftPathFor(1))).toBe("版本一");
+			expect(await readDraft(root, draftPathFor(2))).toBe("版本二");
 			const state = await readState(root);
 			expect(state.currentDraft).toBe("drafts/draft-003.md");
 		} finally {

@@ -3,14 +3,14 @@
  * instruction; persist review files. Kept separate from the flow state machine.
  */
 
-import { readBrief, readProjectFile, listTextFiles, parseLockedSentences, readState, writeState } from "./project.ts";
-import { runProgramChecks, programIssuesAsLeads, formatProgramSummary, extractBannedWords } from "./checker.ts";
-import { buildReviewInstruction } from "./prompts.ts";
+import { readFile, writeFile } from "node:fs/promises";
+import { extractBannedWords, programIssuesAsLeads, runProgramChecks } from "./checker.ts";
 import { allowedKinds } from "./genre-instructions.ts";
 import type { GenreConfig } from "./genres/types.ts";
-import { reviewPathFor } from "./versions.ts";
+import { listTextFiles, parseLockedSentences, readBrief, readProjectFile, readState, writeState } from "./project.ts";
+import { buildReviewInstruction } from "./prompts.ts";
 import type { ProgramCheckResult, ReviewFile } from "./types.ts";
-import { readFile, writeFile } from "node:fs/promises";
+import { reviewPathFor } from "./versions.ts";
 
 const SOURCE_EXCERPT_LIMIT = 4000;
 
@@ -20,7 +20,12 @@ export interface ReviewRoundPreparation {
 }
 
 /** Run program checks (per the genre's switches) and build the next semantic-review instruction. */
-export async function prepareReviewRound(root: string, draftPath: string, round: number, genre: GenreConfig): Promise<ReviewRoundPreparation> {
+export async function prepareReviewRound(
+	root: string,
+	draftPath: string,
+	round: number,
+	genre: GenreConfig,
+): Promise<ReviewRoundPreparation> {
 	const draftText = (await readDraftText(root, draftPath)) ?? "";
 	const briefText = await readBrief(root);
 	const lockedSentences = parseLockedSentences((await readProjectFile(root, "locked.md")) ?? "");
@@ -122,12 +127,15 @@ async function readSourceExcerpts(root: string, limit = SOURCE_EXCERPT_LIMIT): P
 }
 
 /** Persist a review file (review-NNN.json, exclusive create) and bump state.reviewCount. */
-export async function persistReviewFile(root: string, data: Omit<ReviewFile, "version" | "createdAt">): Promise<string> {
+export async function persistReviewFile(
+	root: string,
+	data: Omit<ReviewFile, "version" | "createdAt">,
+): Promise<string> {
 	const state = await readState(root);
 	const reviewNumber = state.reviewCount + 1;
-	const relPath = reviewPathFor(root, reviewNumber);
+	const relPath = reviewPathFor(reviewNumber);
 	const review: ReviewFile = { version: 1, createdAt: new Date().toISOString(), ...data };
-	await writeFile(`${root}/${relPath}`, JSON.stringify(review, null, "\t") + "\n", { encoding: "utf-8", flag: "wx" });
+	await writeFile(`${root}/${relPath}`, `${JSON.stringify(review, null, "\t")}\n`, { encoding: "utf-8", flag: "wx" });
 	state.reviewCount = reviewNumber;
 	await writeState(root, state);
 	return relPath;

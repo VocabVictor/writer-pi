@@ -10,7 +10,7 @@
  *   state.json    — 当前草稿版本、任务阶段等状态
  */
 
-import { readFile, readdir, mkdir, writeFile, access } from "node:fs/promises";
+import { access, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { WriterState } from "./types.ts";
 
@@ -90,7 +90,7 @@ export async function ensureProject(root: string): Promise<string[]> {
 		const p = join(root, dir);
 		if (!(await fileExists(p))) {
 			await mkdir(p, { recursive: true });
-			created.push(dir + "/");
+			created.push(`${dir}/`);
 		}
 	}
 	for (const [file, template] of [
@@ -125,7 +125,7 @@ export async function readState(root: string): Promise<WriterState> {
 
 export async function writeState(root: string, state: WriterState): Promise<void> {
 	state.updatedAt = new Date().toISOString();
-	await writeFile(join(root, STATE_FILE), JSON.stringify(state, null, "\t") + "\n", "utf-8");
+	await writeFile(join(root, STATE_FILE), `${JSON.stringify(state, null, "\t")}\n`, "utf-8");
 }
 
 export async function readBrief(root: string): Promise<string | null> {

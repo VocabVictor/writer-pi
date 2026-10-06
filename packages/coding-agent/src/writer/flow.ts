@@ -14,17 +14,17 @@
  * IO 通过 FlowIO 注入，便于用 mock 模型驱动做自动化测试。
  */
 
-import { readState, writeState } from "./project.ts";
-import { readDraft, saveDraft, setStage } from "./versions.ts";
-import { validateReview } from "./review-validate.ts";
 import { formatProgramSummary } from "./checker.ts";
 import { persistReviewFile, prepareReviewRound, readSourceTexts } from "./flow-review.ts";
 import { prepareFlowStart } from "./flow-start.ts";
-import { stripFences, buildReviseRoundInstruction, buildFormatRetryInstruction } from "./prompts.ts";
-import { applyParagraphEdit } from "./paragraph-edit.ts";
 import { renderGenreRules } from "./genre-instructions.ts";
 import { getGenreOrFallback } from "./genres/index.ts";
+import { applyParagraphEdit } from "./paragraph-edit.ts";
+import { ensureProject, readState, writeState } from "./project.ts";
+import { buildFormatRetryInstruction, buildReviseRoundInstruction, stripFences } from "./prompts.ts";
+import { validateReview } from "./review-validate.ts";
 import type { FlowIO, StartOptions, WriterOperation, WriterStage } from "./types.ts";
+import { readDraft, saveDraft, setStage } from "./versions.ts";
 
 export const MAX_REVISION_ROUNDS = 2;
 const MIN_FALLBACK_DRAFT_CHARS = 30;
@@ -112,6 +112,8 @@ export class WritingFlow {
 	// =========================================================================
 
 	async toolSaveDraft(content: string, note?: string): Promise<{ path: string; version: number }> {
+		// A direct print-mode prompt can hit this tool without ever running /draft, so the scaffold may not exist yet.
+		await ensureProject(this.root);
 		const saved = await saveDraft(this.root, stripFences(content), note);
 		this.currentDraftPath = saved.path;
 		return { path: saved.path, version: saved.version };
@@ -181,7 +183,9 @@ export class WritingFlow {
 		const draftText = (await readDraft(this.root, draftPath)) ?? "";
 		const genre = getGenreOrFallback(this.genreId);
 		const prep = await prepareReviewRound(this.root, draftPath, this.round + 1, genre);
-		const validation = validateReview(assistantText ?? "", draftText, { sourceTexts: await readSourceTexts(this.root) });
+		const validation = validateReview(assistantText ?? "", draftText, {
+			sourceTexts: await readSourceTexts(this.root),
+		});
 
 		if (!validation.ok) {
 			if (!this.formatRetried) {
@@ -283,7 +287,9 @@ export class WritingFlow {
 		if (this.roundSummaries.length > 0) {
 			extras.push(`**修改摘要**\n${this.roundSummaries.map((s) => `- ${s.replace(/\n+/g, " ")}`).join("\n")}`);
 		}
-		extras.push(`当前版本：\`${this.currentDraftPath ?? "无"}\`。用 /drafts 列出全部版本，/diff 对比，/revert <版本> 回退。`);
+		extras.push(
+			`当前版本：\`${this.currentDraftPath ?? "无"}\`。用 /drafts 列出全部版本，/diff 对比，/revert <版本> 回退。`,
+		);
 		this.io.summary([summaryText, ...extras].join("\n\n"));
 	}
 
@@ -293,4 +299,3 @@ export class WritingFlow {
 		await writeState(this.root, state);
 	}
 }
-

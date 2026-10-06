@@ -3,14 +3,14 @@
  * These are first-class tools of writer-pi (not an extension), registered alongside read.
  */
 
+import { appendFile, mkdir, writeFile } from "node:fs/promises";
 import type { AgentTool } from "@earendil-works/pi-agent-core";
 import { Type } from "typebox";
+import { getGenreOrFallback } from "../../writer/genres/index.ts";
+import { writerRuntime } from "../../writer/runtime.ts";
+import { diffDrafts, draftPathFor, revertTo } from "../../writer/versions.ts";
 import type { ToolDefinition } from "../extensions/types.ts";
 import { wrapToolDefinition } from "./tool-definition-wrapper.ts";
-import { writerRuntime } from "../../writer/runtime.ts";
-import { diffDrafts, revertTo, parseDraftVersion, draftPathFor } from "../../writer/versions.ts";
-import { getGenreOrFallback } from "../../writer/genres/index.ts";
-import { mkdir, appendFile, writeFile } from "node:fs/promises";
 
 const saveDraftSchema = Type.Object({
 	content: Type.String({ description: "完整文稿正文（纯文本，不含代码块围栏与说明文字）" }),
@@ -24,9 +24,7 @@ export function createSaveDraftToolDefinition(cwd: string): ToolDefinition<typeo
 		description:
 			"把完整文稿保存为一个新的草稿版本（新文件，从不覆盖旧版本）。保存时只包含文稿正文本身，不要包含说明文字或代码块围栏。",
 		promptSnippet: "保存完整文稿为新草稿版本（drafts/draft-NNN.md，从不覆盖）",
-		promptGuidelines: [
-			"起草或整体改写后，必须调用 save_draft 保存完整文稿；保存时只包含正文，去掉代码块围栏。",
-		],
+		promptGuidelines: ["起草或整体改写后，必须调用 save_draft 保存完整文稿；保存时只包含正文，去掉代码块围栏。"],
 		parameters: saveDraftSchema,
 		async execute(_toolCallId, params) {
 			const flow = writerRuntime.flowFor(cwd);
@@ -111,7 +109,11 @@ export function createRevertVersionToolDefinition(cwd: string): ToolDefinition<t
 		async execute(_toolCallId, params) {
 			const version = parseVersionArg(params.version);
 			if (version === null) {
-				return { content: [{ type: "text", text: "版本参数无效，应为 draft-001、001 或 1。" }], details: {}, isError: true };
+				return {
+					content: [{ type: "text", text: "版本参数无效，应为 draft-001、001 或 1。" }],
+					details: {},
+					isError: true,
+				};
 			}
 			const result = await revertTo(cwd, version);
 			if (!result) {
@@ -123,7 +125,7 @@ export function createRevertVersionToolDefinition(cwd: string): ToolDefinition<t
 			}
 			return {
 				content: [
-					{ type: "text", text: `已回退到 ${draftPathFor(cwd, version)} 的内容，保存为新版本 ${result.path}。` },
+					{ type: "text", text: `已回退到 ${draftPathFor(version)} 的内容，保存为新版本 ${result.path}。` },
 				],
 				details: { path: result.path },
 			};
@@ -133,7 +135,11 @@ export function createRevertVersionToolDefinition(cwd: string): ToolDefinition<t
 
 function parseVersionArg(arg: string): number | null {
 	if (!arg) return null;
-	const normalized = arg.trim().replace(/^draft-/i, "").replace(/^0+/, "") || "0";
+	const normalized =
+		arg
+			.trim()
+			.replace(/^draft-/i, "")
+			.replace(/^0+/, "") || "0";
 	if (!/^\d+$/.test(normalized)) return null;
 	return Number(normalized);
 }

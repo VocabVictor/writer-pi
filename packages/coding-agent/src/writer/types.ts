@@ -20,6 +20,8 @@ export interface WriterState {
 	currentDraft: string | null;
 	/** Monotonic counter; draft files are named draft-001.md, draft-002.md, … and never overwritten. */
 	draftCount: number;
+	/** Version notes keyed by draft version number, e.g. "1" -> "初稿". */
+	draftNotes?: Record<string, string>;
 	/** Monotonic counter for reviews/review-001.json, … */
 	reviewCount: number;
 	/** Number of completed revise rounds in the current flow. */

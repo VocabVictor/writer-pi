@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Added
+
+- Draft version notes are stored in `state.json` and shown by `/drafts`.
+- `save_draft` creates the writing scaffold when it is the first write in a directory (print mode).
+
 ### Changed
 
 - `/arminsayshi` now plays a 3D version in fullscreen mode, with one cube per pixel of Armin. The 3D pi logo easter egg on header logo click is replaced by it.

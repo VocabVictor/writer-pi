@@ -3,11 +3,18 @@
  * /genre 是维度命令：查看或切换当前体裁（持久化到 state.json）。
  */
 
-import { readState, readBrief, listTextFiles, readProjectFile, parseLockedSentences, ensureProject } from "./project.ts";
-import { listDrafts, diffDrafts, revertTo } from "./versions.ts";
-import { getGenre, getGenreOrFallback, GENRES } from "./genres/index.ts";
-import { MAX_REVISION_ROUNDS, WritingFlow } from "./flow.ts";
-import type { WriterUI, WriterSession } from "./runtime.ts";
+import { MAX_REVISION_ROUNDS, type WritingFlow } from "./flow.ts";
+import { GENRES, getGenre, getGenreOrFallback } from "./genres/index.ts";
+import {
+	ensureProject,
+	listTextFiles,
+	parseLockedSentences,
+	readBrief,
+	readProjectFile,
+	readState,
+} from "./project.ts";
+import type { WriterSession, WriterUI } from "./runtime.ts";
+import { diffDrafts, listDrafts, revertTo } from "./versions.ts";
 
 const PROJECT_COMMANDS = new Set(["writing", "drafts", "diff", "revert", "genre"]);
 
@@ -66,7 +73,7 @@ export function projectCommands(session: WriterSession, ui: WriterUI, flow: Writ
 				ui.notify("没有可对比的版本（至少需要两个版本）。", "warning");
 				return;
 			}
-			sendSummary(session, "```diff\n" + patch + "\n```");
+			sendSummary(session, `\`\`\`diff\n${patch}\n\`\`\``);
 		},
 
 		async revert(args): Promise<void> {
@@ -90,7 +97,9 @@ export function projectCommands(session: WriterSession, ui: WriterUI, flow: Writ
 				for (const g of GENRES) {
 					const state = await readState(session.cwd);
 					const current = state.genre === g.id ? " ← 当前" : "";
-					lines.push(`- \`${g.id}\` ${g.name}${g.experimental ? "（experimental）" : ""}${current} — ${g.description}`);
+					lines.push(
+						`- \`${g.id}\` ${g.name}${g.experimental ? "（experimental）" : ""}${current} — ${g.description}`,
+					);
 				}
 				sendSummary(session, lines.join("\n"));
 				return;
@@ -104,14 +113,21 @@ export function projectCommands(session: WriterSession, ui: WriterUI, flow: Writ
 			state.genre = genre.id;
 			const { writeState } = await import("./project.ts");
 			await writeState(session.cwd, state);
-			ui.notify(`当前体裁已设为 ${genre.name}（${genre.id}）。对下一次 /draft /continue /outline /revise 生效。`, "info");
+			ui.notify(
+				`当前体裁已设为 ${genre.name}（${genre.id}）。对下一次 /draft /continue /outline /revise 生效。`,
+				"info",
+			);
 		},
 	};
 }
 
 function parseVersionArg(arg: string): number | null {
 	if (!arg) return null;
-	const normalized = arg.trim().replace(/^draft-/i, "").replace(/^0+/, "") || "0";
+	const normalized =
+		arg
+			.trim()
+			.replace(/^draft-/i, "")
+			.replace(/^0+/, "") || "0";
 	if (!/^\d+$/.test(normalized)) return null;
 	return Number(normalized);
 }

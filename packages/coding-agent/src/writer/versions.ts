@@ -5,19 +5,19 @@
  * with the old content, keeping all history files intact.
  */
 
-import { readFile, writeFile, readdir, stat } from "node:fs/promises";
+import { readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import * as Diff from "diff";
-import { DRAFTS_DIR, REVIEWS_DIR, readState, writeState, fileExists } from "./project.ts";
-import type { DraftVersionInfo, WriterState, WriterStage } from "./types.ts";
+import { DRAFTS_DIR, fileExists, REVIEWS_DIR, readState, writeState } from "./project.ts";
+import type { DraftVersionInfo, WriterStage, WriterState } from "./types.ts";
 
 const VERSION_RE = /^draft-(\d+)\.md$/;
 
-export function draftPathFor(root: string, version: number): string {
+export function draftPathFor(version: number): string {
 	return `${DRAFTS_DIR}/draft-${String(version).padStart(3, "0")}.md`;
 }
 
-export function reviewPathFor(root: string, version: number): string {
+export function reviewPathFor(version: number): string {
 	return `${REVIEWS_DIR}/review-${String(version).padStart(3, "0")}.json`;
 }
 
@@ -26,7 +26,7 @@ export function parseDraftVersion(relPath: string): number | null {
 	return m ? Number(m[1]) : null;
 }
 
-/** Save `content` as the next draft version. Never overwrites: bumps past any file already on disk. */
+/** Save `content` as the next draft version. Never overwrites: bumps past any file already on disk. `note` is stored in state so listings can show it. */
 export async function saveDraft(
 	root: string,
 	content: string,
@@ -35,15 +35,17 @@ export async function saveDraft(
 ): Promise<{ path: string; version: number; state: WriterState }> {
 	const state = await readState(root);
 	let version = Math.max(state.draftCount, 0) + 1;
-	let relPath = draftPathFor(root, version);
+	let relPath = draftPathFor(version);
 	while (await fileExists(join(root, relPath))) {
 		// File already on disk (e.g. user dropped a manuscript there manually): skip the number.
 		version += 1;
-		relPath = draftPathFor(root, version);
+		relPath = draftPathFor(version);
 	}
 	await writeFile(join(root, relPath), content, { encoding: "utf-8", flag: "wx" });
 	state.draftCount = version;
 	state.currentDraft = relPath;
+	// Store the note so /drafts can show it per version.
+	if (note !== undefined) state.draftNotes = { ...state.draftNotes, [version]: note };
 	Object.assign(state, stateOverrides);
 	await writeState(root, state);
 	return { path: relPath, version, state };
@@ -81,7 +83,7 @@ export async function listDrafts(root: string): Promise<DraftVersionInfo[]> {
 		infos.push({
 			path: relPath,
 			version,
-			note: state.currentDraft === relPath ? "current" : null,
+			note: state.draftNotes?.[version] ?? (state.currentDraft === relPath ? "current" : null),
 			createdAt,
 		});
 	}
@@ -89,8 +91,12 @@ export async function listDrafts(root: string): Promise<DraftVersionInfo[]> {
 }
 
 /** Append a new draft version with the content of `version`, leaving the old file untouched. */
-export async function revertTo(root: string, version: number, note?: string): Promise<{ path: string; version: number } | null> {
-	const relPath = draftPathFor(root, version);
+export async function revertTo(
+	root: string,
+	version: number,
+	note?: string,
+): Promise<{ path: string; version: number } | null> {
+	const relPath = draftPathFor(version);
 	const content = await readDraft(root, relPath);
 	if (content === null) return null;
 	const saved = await saveDraft(root, content, note ?? `reverted from ${relPath}`);
@@ -110,14 +116,19 @@ export async function diffDrafts(root: string, fromVersion?: number, toVersion?:
 	const from = fromVersion ?? versions[versions.length - 2];
 	const to = toVersion ?? versions[versions.length - 1];
 	if (from === undefined || to === undefined || from === to) return null;
-	const a = await readDraft(root, draftPathFor(root, from));
-	const b = await readDraft(root, draftPathFor(root, to));
+	const a = await readDraft(root, draftPathFor(from));
+	const b = await readDraft(root, draftPathFor(to));
 	if (a === null || b === null) return null;
-	return diffTexts(draftPathFor(root, from), draftPathFor(root, to), a, b);
+	return diffTexts(draftPathFor(from), draftPathFor(to), a, b);
 }
 
 /** Stage helper used by the writing flow to persist stage transitions alongside state. */
-export async function setStage(root: string, stage: WriterStage, mode?: WriterState["mode"], lastRequest?: string): Promise<WriterState> {
+export async function setStage(
+	root: string,
+	stage: WriterStage,
+	mode?: WriterState["mode"],
+	lastRequest?: string,
+): Promise<WriterState> {
 	const state = await readState(root);
 	state.stage = stage;
 	if (mode !== undefined) state.mode = mode;
