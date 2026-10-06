@@ -10,7 +10,7 @@
  *   state.json    — 当前草稿版本、任务阶段等状态
  */
 
-import { access, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { access, mkdir, readdir, readFile, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { WriterState } from "./types.ts";
 
@@ -21,6 +21,7 @@ export const BRIEF_FILE = "brief.md";
 export const LOCKED_FILE = "locked.md";
 export const SOURCES_DIR = "sources";
 export const VOICE_DIR = "voice";
+export const CONTEXT_DIR = "context";
 export const DRAFTS_DIR = "drafts";
 export const REVIEWS_DIR = "reviews";
 export const STATE_FILE = "state.json";
@@ -44,6 +45,7 @@ export function initialState(): WriterState {
 		revisionRounds: 0,
 		genre: null,
 		voice: null,
+		format: null,
 		lastRequest: null,
 		updatedAt: new Date().toISOString(),
 	};
@@ -85,7 +87,7 @@ export async function fileExists(path: string): Promise<boolean> {
 /** Create the project skeleton for missing pieces. Existing files are never touched. Returns created paths. */
 export async function ensureProject(root: string): Promise<string[]> {
 	const created: string[] = [];
-	const dirs = [SOURCES_DIR, VOICE_DIR, DRAFTS_DIR, REVIEWS_DIR];
+	const dirs = [SOURCES_DIR, VOICE_DIR, CONTEXT_DIR, DRAFTS_DIR, REVIEWS_DIR];
 	for (const dir of dirs) {
 		const p = join(root, dir);
 		if (!(await fileExists(p))) {
@@ -123,9 +125,41 @@ export async function readState(root: string): Promise<WriterState> {
 	}
 }
 
-export async function writeState(root: string, state: WriterState): Promise<void> {
+// 流程轮（sendUserMessage fire-and-forget）与工具保存并发写 state.json：直接 writeFile 的
+// 截断窗口读到空文件（JSON 解析失败 → initialState），交错提交还会丢更新。所以写入口
+// 串行化（同一项目的读-改-写排队）+ 临时文件 rename 原子落盘。
+const stateLocks = new Map<string, Promise<unknown>>();
+
+function serializeWrite<T>(key: string, run: () => Promise<T>): Promise<T> {
+	const previous = stateLocks.get(key) ?? Promise.resolve();
+	const entry = previous.then(run, run);
+	stateLocks.set(
+		key,
+		entry.catch(() => undefined),
+	);
+	return entry;
+}
+
+async function writeStateFile(root: string, state: WriterState): Promise<void> {
 	state.updatedAt = new Date().toISOString();
-	await writeFile(join(root, STATE_FILE), `${JSON.stringify(state, null, "\t")}\n`, "utf-8");
+	const target = join(root, STATE_FILE);
+	const tmp = `${target}.${Date.now()}-${Math.random().toString(36).slice(2)}.tmp`;
+	await writeFile(tmp, `${JSON.stringify(state, null, "\t")}\n`, "utf-8");
+	await rename(tmp, target);
+}
+
+/** Serialized read-modify-write on state.json; the mutation runs inside the lock, the state file is written after it. */
+export function updateState<R = WriterState>(root: string, mutate: (state: WriterState) => R | Promise<R>): Promise<R> {
+	return serializeWrite(root, async () => {
+		const state = await readState(root);
+		const result = await mutate(state);
+		await writeStateFile(root, state);
+		return result;
+	});
+}
+
+export function writeState(root: string, state: WriterState): Promise<void> {
+	return serializeWrite(root, () => writeStateFile(root, state));
 }
 
 export async function readBrief(root: string): Promise<string | null> {

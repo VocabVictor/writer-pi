@@ -63,9 +63,38 @@ export const fiction: GenreConfig = {
 		"时间线是否连续、有没有与 context/timeline.md 矛盾；叙述视角是否保持一致（consistency）",
 		"是否与 context/events.md 中已经发生的事实冲突（consistency / unsourced_addition）",
 		"续写是否尊重既有设定；重大设定变化是否被明确标出（consistency）",
+		"朗读是否顺畅：对话与叙述的节奏交替（SENTENCE FLUENCY）；动词是否主动、细节是否具体（WORD CHOICE）（other）",
 	],
 	extraKinds: ["consistency", "task_incomplete"],
-	checks: { length: false, bannedWords: true, duplicates: "off", locked: true, citations: false },
+	checks: {
+		length: false,
+		bannedWords: true,
+		duplicates: "off",
+		locked: true,
+		citations: false,
+		longForm: { enabled: true, maxParagraphChars: 500 },
+		// 文学类开指纹词检测（缓缓/微微等小说指纹），应用类不开。
+		aitone: { enabled: true, threshold: 25, fingerprint: true },
+	},
+	// 长文（长篇/多章）：近似重复关闭（有意重复的意象不进检查）；规则文本与 maxParagraphChars 保持一致。
+	longForm: {
+		threshold: 5000,
+		structure: [
+			"每章一个场景目标：人物进场想要什么、遇到什么阻碍、出场时结果如何；一章内至少一次转折或信息变化",
+			"章末收束方式交替使用（悬念、余韵、转折、留白），不连续多章用同一种方式断章",
+			"时空或视角切换时写清标记（时间、地点、人称的变化），不让读者在跳跃中迷失",
+		],
+		pacing: [
+			"单段不超过 500 字；对话场景保持短段，不把对话塞进大段叙述",
+			"紧张场景用短句短段加速，过渡场景用长段放缓；连续 3 章同一节奏时安排一次喘息",
+			"新设定一章内只引入一组，不集中倾倒设定，不插入说明文式的背景介绍",
+		],
+		tracking: [
+			"埋下的伏笔（物件、台词、承诺）记入 context/events.md 并标注状态；重要伏笔 2-3 章内回响一次，核心伏笔在结局前回收",
+			"不引入结局用不上的新设定：新物件、新能力出现前先确认它会参与后续情节（契诃夫之枪）",
+			"出场间隔超过 3 章的人物回场时给一句身份提醒；视角人物只能感知他知道的事",
+		],
+	},
 	tools: ["update_context"],
 	completion: [
 		"续写/起草部分与既有设定、时间线、视角一致",

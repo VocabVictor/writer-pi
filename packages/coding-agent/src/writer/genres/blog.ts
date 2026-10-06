@@ -28,9 +28,36 @@ export const blog: GenreConfig = {
 		"是否重复解释同一个意思（over_explanation）",
 		"是否把明确的观点冲淡成两边各打五十大板的平衡论述（meaning_drift）",
 		"是否擅自增加个人经历、数据或引用（unsourced_addition）",
+		"动词是否主动、名词是否具体（WORD CHOICE）；结尾是否提供了收束而不是公式化总结（ORGANIZATION）（other）",
 	],
-	extraKinds: ["task_incomplete"],
-	checks: { length: true, bannedWords: true, duplicates: "strict", locked: true, citations: false },
+	extraKinds: ["task_incomplete", "consistency"],
+	checks: {
+		length: true,
+		bannedWords: true,
+		duplicates: "strict",
+		locked: true,
+		citations: false,
+		longForm: { enabled: true, maxParagraphChars: 350 },
+		aitone: { enabled: true, threshold: 25 },
+	},
+	// 长文（深度长文/系列）：规则文本与 checks.longForm.maxParagraphChars 保持一致。
+	longForm: {
+		threshold: 2000,
+		structure: [
+			"用小标题分节推进：每节只回答小标题提出的问题，删掉任何一节整体论证都能看出缺口",
+			"中心观点在前 3 段内出现；结尾回应开头提出的问题，不引入新论点",
+			"小节之间递进：上一节的结论是下一节的起点，不平行堆砌互不相干的分论点",
+		],
+		pacing: [
+			"单段不超过 350 字；连续两段说同一个论点就合并或删减",
+			"每个论点最多两个例子，第三个例子开始是在稀释观点",
+			"最长小节不超过最短小节的 3 倍，过长的小节拆开",
+		],
+		tracking: [
+			"同一论据只完整使用一次，回指时用一句话指回，不重讲",
+			"关键提法全篇一致：同一个东西不换名字，例子中的称呼不中途变化",
+		],
+	},
 	tools: [],
 	completion: ["中心观点清楚且与用户要求一致", "所有例子都支撑观点，没有为凑字数的旁枝", "同一个意思没有反复解释"],
 	operations: ["draft", "continue", "outline", "revise"],

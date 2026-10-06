@@ -12,6 +12,7 @@ import {
 	readBrief,
 	readProjectFile,
 	readState,
+	updateState,
 } from "./project.ts";
 import type { WriterSession, WriterUI } from "./runtime.ts";
 import { diffDrafts, listDrafts, revertTo } from "./versions.ts";
@@ -109,10 +110,9 @@ export function projectCommands(session: WriterSession, ui: WriterUI, flow: Writ
 				ui.notify(`未知体裁：${requested}。用 /genre 查看列表。`, "error");
 				return;
 			}
-			const state = await readState(session.cwd);
-			state.genre = genre.id;
-			const { writeState } = await import("./project.ts");
-			await writeState(session.cwd, state);
+			await updateState(session.cwd, (s) => {
+				s.genre = genre.id;
+			});
 			ui.notify(
 				`当前体裁已设为 ${genre.name}（${genre.id}）。对下一次 /draft /continue /outline /revise 生效。`,
 				"info",

@@ -4,9 +4,10 @@
  */
 
 import { MAX_REVISION_ROUNDS, WritingFlow } from "./flow.ts";
+import { handleWriterCommand, isWriterCommand, refreshWidget } from "./ops.ts";
 import { readState } from "./project.ts";
 import type { FlowIO } from "./types.ts";
-import { handleWriterCommand, isWriterCommand, refreshWidget } from "./writer-commands.ts";
+import { setStage } from "./versions.ts";
 
 export interface WriterUI {
 	notify(message: string, type?: "info" | "warning" | "error"): void;
@@ -92,7 +93,8 @@ class WriterRuntime {
 	/** Called from AgentSession when an agent run ends. */
 	async handleAgentEnd(messages: { role: string; content: unknown }[]): Promise<void> {
 		if (!this.flow?.isActive) return;
-		await this.flow.onAgentEnd(lastAssistantText(messages));
+		const meta = lastAssistantMeta(messages);
+		await this.flow.onAgentEnd(meta.text, { aborted: meta.aborted });
 		if (this.session) await refreshWidget(this.session, this.ui, this.flow);
 	}
 
@@ -107,29 +109,39 @@ class WriterRuntime {
 	async onSessionStart(): Promise<void> {
 		if (!this.session) return;
 		const state = await readState(this.session.cwd);
-		if (state.stage !== "idle") {
-			this.ui.notify(
-				`上次写作流程在「${state.stage}」阶段未正常收尾（可能是会话中断）。已保存的版本不受影响；如需继续请重新发起 /draft、/revise 或 /voice。`,
-				"warning",
-			);
-			const { setStage } = await import("./versions.ts");
-			await setStage(this.session.cwd, "idle");
+		if (state.stage === "idle") return;
+		// 分节（长文）阶段能从 state 恢复：重启后从断点继续，而不是重置。
+		if (state.stage === "outlining" || state.stage === "sectioning") {
+			const flow = this.flowFor(this.session.cwd);
+			if (await flow.resume()) {
+				this.ui.notify("检测到未完成的分节写作流程，已从断点继续。", "info");
+				await refreshWidget(this.session, this.ui, flow);
+				return;
+			}
 		}
+		this.ui.notify(
+			`上次写作流程在「${state.stage}」阶段未正常收尾（可能是会话中断）。已保存的版本不受影响；如需继续请重新发起 /draft、/revise 或 /voice。`,
+			"warning",
+		);
+		await setStage(this.session.cwd, "idle");
 	}
 }
 
-function lastAssistantText(messages: { role: string; content: unknown }[]): string | undefined {
+function lastAssistantMeta(messages: { role: string; content: unknown }[]): { text?: string; aborted: boolean } {
 	for (let i = messages.length - 1; i >= 0; i--) {
 		const m = messages[i];
 		if (m.role !== "assistant") continue;
 		const content = m.content;
 		if (!Array.isArray(content)) continue;
-		return content
-			.filter((c): c is { type: "text"; text: string } => (c as { type: string }).type === "text")
-			.map((c) => (c as { text: string }).text)
-			.join("\n");
+		return {
+			text: content
+				.filter((c): c is { type: "text"; text: string } => (c as { type: string }).type === "text")
+				.map((c) => (c as { text: string }).text)
+				.join("\n"),
+			aborted: (m as { stopReason?: string }).stopReason === "aborted",
+		};
 	}
-	return undefined;
+	return { aborted: false };
 }
 
 export const writerRuntime = new WriterRuntime();

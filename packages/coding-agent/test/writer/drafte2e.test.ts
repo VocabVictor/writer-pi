@@ -1,7 +1,8 @@
 /**
  * Draft e2e: the print-mode entry (a single prompt, no TUI) must produce a sample
- * article on disk. The model is scripted (faux provider); the agent loop, save_draft
- * tool, writing flow and file layout run for real — prompt in, drafts/draft-001.md out.
+ * article on disk — a classic email, a 滕王阁序-style piece, a poem. The model is
+ * scripted (faux provider); the agent loop, save_draft tool, writing flow and file
+ * layout run for real — prompt in, drafts/draft-001.md out.
  */
 
 import { readFile } from "node:fs/promises";
@@ -17,12 +18,12 @@ const SAMPLES = [
 		article: "各位同事：\n\n感谢聚餐邀请，这次先不参加了，下周约饭。",
 	},
 	{
-		prompt: "写一首关于秋夜的小诗",
-		article: "落叶铺满小径，\n晚风把灯吹亮。",
+		prompt: "仿照《滕王阁序》的风格写一篇经典骈文",
+		article: "时维九月，序属三秋。潦水尽而寒潭清，烟光凝而暮山紫。",
 	},
 	{
-		prompt: "写一段下班路上的散文",
-		article: "暮色四合，街角的糖炒栗子还冒着热气。",
+		prompt: "写一首关于秋夜的小诗",
+		article: "落叶铺满小径，\n晚风把灯吹亮。",
 	},
 ];
 

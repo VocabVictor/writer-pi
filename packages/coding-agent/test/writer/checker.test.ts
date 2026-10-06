@@ -10,9 +10,9 @@ import {
 	programIssuesAsLeads,
 	runProgramChecks,
 } from "../../src/writer/checker.ts";
-import { extractJsonObject, validateReview } from "../../src/writer/review-validate.ts";
+import { extractJsonObject, validateReview } from "../../src/writer/validate.ts";
 
-describe("countWords（统计口径：中文字符+英文单词+数字组）", () => {
+describe("countWords（8 语言口径：假名/谚文按字符，字母文字按词）", () => {
 	test("pure Chinese counts per character", () => {
 		const counts = countWords("这是一段十整字的话"); // 9 个汉字
 		expect(counts.cjkChars).toBe(9);
@@ -25,6 +25,36 @@ describe("countWords（统计口径：中文字符+英文单词+数字组）", (
 		expect(counts.cjkChars).toBe(2);
 		expect(counts.digitGroups).toBe(1);
 		expect(counts.wordCount).toBe(4);
+	});
+
+	test("Japanese kana counts per character alongside kanji", () => {
+		const counts = countWords("私は東京に行った"); // 私東京行 4 汉字 + はにった 4 假名
+		expect(counts.cjkChars).toBe(4);
+		expect(counts.kanaChars).toBe(4);
+		expect(counts.latinWords).toBe(0);
+		expect(counts.wordCount).toBe(8);
+	});
+
+	test("Korean hangul counts per character, not per space-separated word", () => {
+		const counts = countWords("나는 밥을 먹었다"); // 7 个谚文字符
+		expect(counts.hangulChars).toBe(7);
+		expect(counts.latinWords).toBe(0);
+		expect(counts.wordCount).toBe(7);
+	});
+
+	test("Cyrillic and Arabic count per word; accented letters stay inside the word", () => {
+		expect(countWords("Иванов написал").latinWords).toBe(2);
+		expect(countWords("الكتاب المفتوح").latinWords).toBe(2);
+		expect(countWords("café García").latinWords).toBe(2);
+		expect(countWords("café García").wordCount).toBe(2);
+	});
+
+	test("a latin run beside kanji counts as one word plus characters", () => {
+		const counts = countWords("API 文档 v2");
+		expect(counts.latinWords).toBe(2);
+		expect(counts.cjkChars).toBe(2);
+		expect(counts.digitGroups).toBe(1);
+		expect(counts.wordCount).toBe(5);
 	});
 
 	test("totalCharsNoWhitespace excludes whitespace", () => {
@@ -59,6 +89,19 @@ describe("extractBannedWords / checkBannedWords", () => {
 			{ word: "抓手", count: 1 },
 		]);
 	});
+
+	test("banned words match across scripts: Cyrillic, Arabic (RTL), kana, hangul, accents, latin", () => {
+		expect(checkBannedWords("Обнаружено явление и ещё раз явление.", ["явление"])).toEqual([
+			{ word: "явление", count: 2 },
+		]);
+		expect(checkBannedWords("هذا النص يتضمن الكلمة الممنوعة.", ["الكلمة"])).toEqual([{ word: "الكلمة", count: 1 }]);
+		expect(checkBannedWords("これはテストです。テスト。", ["テスト"])).toEqual([{ word: "テスト", count: 2 }]);
+		expect(checkBannedWords("한국어 문장입니다.", ["문장"])).toEqual([{ word: "문장", count: 1 }]);
+		expect(checkBannedWords("C'est un mot interdit, déjà vu.", ["déjà"])).toEqual([{ word: "déjà", count: 1 }]);
+		expect(checkBannedWords("This draft mentions synergy twice: synergy.", ["synergy"])).toEqual([
+			{ word: "synergy", count: 2 },
+		]);
+	});
 });
 
 describe("duplicate detection", () => {
@@ -74,6 +117,24 @@ describe("duplicate detection", () => {
 		expect(checkDuplicateSentences(`开头。${sentence}中间。${sentence}`)).toHaveLength(1);
 		expect(checkDuplicateSentences("短句一。短句二。短句三。")).toHaveLength(0);
 	});
+
+	test("works on Japanese and Arabic text", () => {
+		const jp = "彼は黄昏の巷口に立ち尽くし、売り切れた栗のことを思い出していた。";
+		expect(checkDuplicateParagraphs(`${jp}\n\n${jp}`)).toHaveLength(1);
+		expect(checkDuplicateSentences(`始まり。${jp}続き。${jp}`)).toHaveLength(1);
+		const ar = "جملة عربية طويلة بما يكفي ليتم اكتشاف تكرارها في النص.";
+		expect(checkDuplicateParagraphs(`${ar}\n\n${ar}`)).toHaveLength(1);
+	});
+
+	test("works on English, Russian and Korean text", () => {
+		const en = "He pushed open the rusty iron door and walked down the corridor.";
+		expect(checkDuplicateParagraphs(`${en}\n\n${en}`)).toHaveLength(1);
+		expect(checkDuplicateSentences(`First. ${en} Then. ${en}`)).toHaveLength(1);
+		const ru = "Предложение на русском языке достаточно длинное, чтобы его повтор был обнаружен здесь.";
+		expect(checkDuplicateParagraphs(`${ru}\n\n${ru}`)).toHaveLength(1);
+		const ko = "그는 녹슨 철문을 밀어 열고 복도를 걸어 내려갔다.";
+		expect(checkDuplicateParagraphs(`${ko}\n\n${ko}`)).toHaveLength(1);
+	});
 });
 
 describe("checkLocked（锁定原句检测）", () => {
@@ -81,6 +142,13 @@ describe("checkLocked（锁定原句检测）", () => {
 		const locked = ["我当时不想答应，只是怕直接拒绝让场面难看。"];
 		expect(checkLocked("改写后的句子完全不同。", locked)).toEqual(locked);
 		expect(checkLocked("背景：我当时不想答应，只是怕直接拒绝让场面难看。", locked)).toEqual([]);
+	});
+
+	test("locked sentences match verbatim in Japanese, Arabic, Russian and Korean", () => {
+		expect(checkLocked("改写后完全不同。", ["彼は約束を守らなかった。"])).toEqual(["彼は約束を守らなかった。"]);
+		expect(checkLocked("في البداية: لم أكن أريد الموافقة.", ["لم أكن أريد الموافقة."])).toEqual([]);
+		expect(checkLocked("改写后不同。", ["Я не хотел соглашаться тогда."])).toEqual(["Я не хотел соглашаться тогда."]);
+		expect(checkLocked("그때 나는 동의하고 싶지 않았다.", ["그때 나는 동의하고 싶지 않았다."])).toEqual([]);
 	});
 });
 

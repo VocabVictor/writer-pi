@@ -15,15 +15,16 @@
  */
 
 import { formatProgramSummary } from "./checker.ts";
-import { persistReviewFile, prepareReviewRound, readSourceTexts } from "./flow-review.ts";
-import { prepareFlowStart } from "./flow-start.ts";
-import { renderGenreRules } from "./genre-instructions.ts";
+import { applyParagraphEdit } from "./edit.ts";
 import { getGenreOrFallback } from "./genres/index.ts";
-import { applyParagraphEdit } from "./paragraph-edit.ts";
-import { ensureProject, readState, writeState } from "./project.ts";
+import { renderGenreRules } from "./instructions.ts";
+import { LongFormFlow } from "./longflow.ts";
+import { ensureProject, readState, updateState } from "./project.ts";
 import { buildFormatRetryInstruction, buildReviseRoundInstruction, stripFences } from "./prompts.ts";
-import { validateReview } from "./review-validate.ts";
+import { persistReviewFile, prepareReviewRound, readSourceTexts } from "./review.ts";
+import { prepareFlowStart } from "./start.ts";
 import type { FlowIO, StartOptions, WriterOperation, WriterStage } from "./types.ts";
+import { validateReview } from "./validate.ts";
 import { readDraft, saveDraft, setStage } from "./versions.ts";
 
 export const MAX_REVISION_ROUNDS = 2;
@@ -40,7 +41,10 @@ export class WritingFlow {
 	formatRetried = false;
 	revisionRoundsUsed = 0;
 	currentDraftPath: string | null = null;
+	/** Sectioned (long-form) machine; set when a run routes into the 分节 pipeline. */
+	longForm: LongFormFlow | null = null;
 	private io: FlowIO;
+	private startOptions: StartOptions | null = null;
 	private roundStartDraftCount = 0;
 	private revisionSnapshot: string | null = null;
 	private snapshotDirty = false;
@@ -75,18 +79,26 @@ export class WritingFlow {
 		this.operation = operation;
 		this.mode = operation;
 		this.request = trimmed;
+		this.startOptions = options ?? null;
 		this.round = 0;
 		this.formatRetried = false;
 		this.revisionRoundsUsed = 0;
 		this.roundSummaries = [];
 		this.revisionSnapshot = null;
 		this.snapshotDirty = false;
+		this.longForm = null;
 
 		const prep = await prepareFlowStart(
 			this.root,
 			operation,
 			trimmed,
-			{ baseDraftPath: options?.baseDraftPath, genre: options?.genre, voice: options?.voice },
+			{
+				baseDraftPath: options?.baseDraftPath,
+				genre: options?.genre,
+				voice: options?.voice,
+				long: options?.long,
+				format: options?.format,
+			},
 			(message, type) => this.io.notify(message, type),
 		);
 		if (!prep) {
@@ -100,6 +112,14 @@ export class WritingFlow {
 		}
 		if (prep.draftPath) this.currentDraftPath = prep.draftPath;
 		this.genreId = prep.genre.id;
+		if (prep.longForm) {
+			// 长文：提纲轮先发（sections/ 的状态机接手后续轮次）；工作区文件重置。
+			this.longForm = new LongFormFlow(this.root, this.io, this.genreId, trimmed);
+			this.stage = "outlining";
+			await this.longForm.begin(prep.instruction);
+			await this.persistStage();
+			return true;
+		}
 		this.stage = "drafting";
 		this.io.setActiveTools(prep.toolset);
 		this.io.sendUserMessage(prep.instruction);
@@ -137,10 +157,82 @@ export class WritingFlow {
 	// Stage transitions
 	// =========================================================================
 
-	async onAgentEnd(assistantText: string | undefined): Promise<void> {
-		if (this.stage === "drafting") await this.finishDraftingRound(assistantText);
+	async onAgentEnd(assistantText: string | undefined, meta?: { aborted?: boolean }): Promise<void> {
+		if (this.stage === "outlining" || this.stage === "sectioning") {
+			await this.finishLongFormRound(assistantText, meta?.aborted === true);
+		} else if (this.stage === "drafting") await this.finishDraftingRound(assistantText);
 		else if (this.stage === "reviewing") await this.finishReviewingRound(assistantText);
 		else if (this.stage === "revising") await this.finishRevisingRound(assistantText);
+	}
+
+	/** 恢复中断的分节流程；返回 false 表示没有可恢复的状态。 */
+	async resume(): Promise<boolean> {
+		if (this.isActive) return false;
+		const state = await readState(this.root);
+		if (state.stage !== "outlining" && state.stage !== "sectioning") return false;
+		const lf = new LongFormFlow(this.root, this.io, state.genre, state.lastRequest);
+		const outcome = await lf.resume(state);
+		if (outcome === null || outcome.kind === "failed") {
+			await setStage(this.root, "idle");
+			this.io.notify("分节流程状态不完整，无法恢复；已重置为空闲。", "warning");
+			return false;
+		}
+		this.longForm = lf;
+		this.operation = state.mode;
+		this.mode = state.mode;
+		this.request = state.lastRequest;
+		this.genreId = state.genre;
+		if (outcome.kind === "assembled") {
+			this.currentDraftPath = outcome.draftPath;
+			this.stage = "reviewing";
+			await this.beginReviewRound();
+			return true;
+		}
+		this.stage = lf.stage;
+		await this.persistStage();
+		return true;
+	}
+
+	private async finishLongFormRound(assistantText: string | undefined, aborted: boolean): Promise<void> {
+		const lf = this.longForm;
+		if (!lf) {
+			await this.finish("内部错误：分节状态丢失。");
+			return;
+		}
+		const outcome = await lf.onAgentEnd(assistantText, aborted);
+		if (outcome.kind === "assembled") {
+			this.currentDraftPath = outcome.draftPath;
+			await this.beginReviewRound();
+			return;
+		}
+		if (outcome.kind === "failed") {
+			await this.finish(outcome.summary);
+			return;
+		}
+		if (outcome.kind === "fallback") {
+			// 提纲两次无法结构化：退回单轮全文流程（沿用现有起草→检查闭环）。
+			this.longForm = null;
+			this.io.notify("提纲两次无法解析，退回单轮全文产出", "warning");
+			const prep = await prepareFlowStart(
+				this.root,
+				this.operation ?? "draft",
+				this.request ?? "",
+				{ ...(this.startOptions ?? {}), long: false },
+				(message, type) => this.io.notify(message, type),
+			);
+			if (!prep) {
+				await this.finish("退回单轮流程失败：无法重建起草指令。");
+				return;
+			}
+			this.stage = "drafting";
+			this.io.setActiveTools(prep.toolset);
+			this.io.sendUserMessage(prep.instruction);
+			await this.persistStage();
+			return;
+		}
+		// continue：下一轮指令已发出，流程阶段跟随分节状态机
+		this.stage = lf.stage;
+		await this.persistStage();
 	}
 
 	private async finishDraftingRound(assistantText: string | undefined): Promise<void> {
@@ -167,7 +259,10 @@ export class WritingFlow {
 			return;
 		}
 		const genre = getGenreOrFallback(this.genreId);
-		const prep = await prepareReviewRound(this.root, this.currentDraftPath, this.round + 1, genre);
+		// 长文的检查轮可以直出段落替换（消灭修改轮）；短文保持修改轮闭环。
+		const prep = await prepareReviewRound(this.root, this.currentDraftPath, this.round + 1, genre, {
+			directEdits: this.longForm !== null,
+		});
 		this.stage = "reviewing";
 		this.io.setActiveTools([]);
 		this.io.sendUserMessage(prep.instruction);
@@ -228,6 +323,18 @@ export class WritingFlow {
 			);
 			return;
 		}
+		const applied = this.applyDirectEdits(draftText, validation.edits ?? []);
+		if (applied > 0) {
+			const saved = await saveDraft(this.root, this.revisionSnapshot ?? "", `第 ${this.round + 1} 轮检查直改`);
+			this.currentDraftPath = saved.path;
+			this.revisionSnapshot = null;
+			this.snapshotDirty = false;
+			this.round += 1;
+			this.revisionRoundsUsed = this.round;
+			this.io.notify(`第 ${this.round} 轮检查意见已直接应用 ${applied} 处，保存为 ${saved.path}`);
+			await this.beginReviewRound();
+			return;
+		}
 		this.revisionSnapshot = draftText;
 		this.snapshotDirty = false;
 		this.stage = "revising";
@@ -243,6 +350,23 @@ export class WritingFlow {
 			}),
 		);
 		await this.persistStage();
+	}
+
+	/** B1：检查轮直出的段落替换应用到快照；返回成功应用数（无效替换逐条丢弃）。 */
+	private applyDirectEdits(draftText: string, edits: { original: string; replacement: string }[]): number {
+		let applied = 0;
+		let snapshot = draftText;
+		for (const edit of edits) {
+			const result = applyParagraphEdit(snapshot, edit.original, edit.replacement);
+			if (!result.ok) continue;
+			snapshot = result.snapshot;
+			applied += 1;
+		}
+		if (applied > 0) {
+			this.revisionSnapshot = snapshot;
+			this.snapshotDirty = true;
+		}
+		return applied;
 	}
 
 	private async finishRevisingRound(assistantText: string | undefined): Promise<void> {
@@ -272,6 +396,7 @@ export class WritingFlow {
 	async abort(): Promise<void> {
 		if (!this.isActive) return;
 		this.stage = "idle";
+		this.longForm = null;
 		this.revisionSnapshot = null;
 		this.snapshotDirty = false;
 		await this.persistStage();
@@ -280,6 +405,7 @@ export class WritingFlow {
 
 	private async finish(summaryText: string): Promise<void> {
 		this.stage = "idle";
+		this.longForm = null;
 		this.revisionSnapshot = null;
 		this.snapshotDirty = false;
 		await this.persistStage();
@@ -294,8 +420,15 @@ export class WritingFlow {
 	}
 
 	private async persistStage(): Promise<void> {
-		const state = await setStage(this.root, this.stage, this.mode ?? undefined, this.request ?? undefined);
-		state.revisionRounds = this.round;
-		await writeState(this.root, state);
+		// 整个读-改-写在状态锁内完成：锁外二次写会用旧快照覆盖并发保存的 draftCount/reviewCount。
+		await updateState(this.root, (state) => {
+			state.stage = this.stage;
+			state.mode = this.mode ?? null;
+			state.lastRequest = this.request ?? null;
+			state.revisionRounds = this.round;
+			// 分节进度只在分节流程进行中存在；流程收尾（longForm 置空）时从 state 移除。
+			if (this.longForm) state.longForm = this.longForm.progress();
+			else delete state.longForm;
+		});
 	}
 }

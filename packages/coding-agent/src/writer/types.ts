@@ -9,7 +9,15 @@ export type WriterOperation = (typeof WRITER_OPERATIONS)[number];
 /** Kept as an alias for state.json compatibility with the first demo. */
 export type WriterMode = WriterOperation;
 
-export type WriterStage = "idle" | "drafting" | "reviewing" | "revising";
+export type WriterStage = "idle" | "outlining" | "sectioning" | "drafting" | "reviewing" | "revising";
+
+/** Long-form (分节) progress; present in state.json only while a sectioned flow runs. */
+export interface LongFormProgress {
+	/** Planned section count from the outline. */
+	sectionCount: number;
+	/** Section currently being written (1-based). */
+	sectionIndex: number;
+}
 
 /** Persisted in state.json at the writing project root. */
 export interface WriterState {
@@ -30,8 +38,12 @@ export interface WriterState {
 	genre: string | null;
 	/** Current voice dimension: a voice/ file name or a free-text description. */
 	voice: string | null;
+	/** 输出格式维度（formats.ts 注册表的 id）；null 未设置。 */
+	format: string | null;
 	/** Verbatim request of the most recent /draft, /revise or /voice. */
 	lastRequest: string | null;
+	/** 分节（长文）进度；仅在分节流程进行中存在，流程收尾时移除。 */
+	longForm?: LongFormProgress;
 	updatedAt: string;
 }
 
@@ -70,11 +82,23 @@ export interface ReviewIssue {
 	source_quote?: string;
 }
 
+/** A paragraph replacement the reviewer outputs directly in a checking round (长文检查轮直改). */
+export interface ReviewEdit {
+	/** 1-based paragraph index in the reviewed draft. */
+	paragraph: number;
+	/** Verbatim paragraph from the draft to replace. */
+	original: string;
+	/** New paragraph content; empty string deletes the paragraph. */
+	replacement: string;
+}
+
 export interface ProgramCheckResult {
 	length: {
-		/** CJK characters + latin words + digit groups; the statistic used against the brief target. */
+		/** 表意/音节文字按字符计（汉字、假名、谚文），字母文字按词计；对齐 brief 长度目标。 */
 		wordCount: number;
 		cjkChars: number;
+		kanaChars: number;
+		hangulChars: number;
 		latinWords: number;
 		digitGroups: number;
 		totalCharsNoWhitespace: number;
@@ -130,4 +154,8 @@ export interface StartOptions {
 	genre?: string;
 	/** 文风维度：描述文本、"sample"（voice/ 样本）或 null（不使用）。 */
 	voice?: string | null;
+	/** 显式要求按分节方式写长文（--long）；未指定时由长度目标推断。 */
+	long?: boolean;
+	/** 显式指定输出格式（--format=）；未指定时用 settings 默认。 */
+	format?: string;
 }

@@ -2,37 +2,34 @@
  * Programmatic checks (检查机制 A). These are deterministic hints computed from the draft
  * text — they are leads for the semantic review, not a verdict on writing quality.
  *
- * Word-count convention (中文优先): 字数 = CJK characters + latin words + digit groups.
- * A run of latin letters counts as one word (like Word's "字数" for mixed text), a run of
- * digits counts as one group. totalCharsNoWhitespace is also reported for transparency.
+ * 字数口径与长文检查（过长段落、跨段近似重复、等长段落、待补残留）在 genres/longform.ts，
+ * AI 味检测（词表+结构正则加权打分）在 genres/aitone.ts，线索渲染在 leads.ts；
+ * checker 依赖它们，长文与 AI 味检查按 GenreChecks.longForm / .aitone 开关运行。
  */
 
 import { checkCitations } from "./citations.ts";
+import { type AitoneChecks, runAitoneChecks } from "./genres/aitone.ts";
+import {
+	countOccurrences,
+	countWords,
+	type LongFormChecks,
+	runLongFormChecks,
+	splitSentences,
+} from "./genres/longform.ts";
 import type { GenreChecks } from "./genres/types.ts";
 import { splitParagraphs } from "./project.ts";
-import type { ProgramCheckResult, ReviewIssue } from "./types.ts";
+import type { ProgramCheckResult } from "./types.ts";
 
-const CJK_RE = /[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/g;
-const LATIN_WORD_RE = /[A-Za-z]+/g;
-const DIGIT_GROUP_RE = /\d+/g;
+export type { WordCounts } from "./genres/longform.ts";
+export { countWords } from "./genres/longform.ts";
 
-export interface WordCounts {
-	wordCount: number;
-	cjkChars: number;
-	latinWords: number;
-	digitGroups: number;
-	totalCharsNoWhitespace: number;
-}
+/** 字数口径扩展（假名/谚文按字符）；src/writer/types.ts 归流程 agent，字段后续合入。 */
+export type LengthCounts = ProgramCheckResult["length"] & { kanaChars: number; hangulChars: number };
 
-export function countWords(text: string): WordCounts {
-	const cjkChars = (text.match(CJK_RE) ?? []).length;
-	const latinWords = (text.match(LATIN_WORD_RE) ?? []).length;
-	const digitGroups = (text.match(DIGIT_GROUP_RE) ?? []).length;
-	const totalCharsNoWhitespace = text.replace(/\s/g, "").length;
-	return { wordCount: cjkChars + latinWords + digitGroups, cjkChars, latinWords, digitGroups, totalCharsNoWhitespace };
-}
+/** Program checks including the long-form and AI-tone findings (长文与 AI 味结果拼进口径，随 ReviewFile 落盘). */
+export type FullProgramChecks = Omit<ProgramCheckResult, "length"> &
+	LongFormChecks & { length: LengthCounts; aitone: AitoneChecks };
 
-/** Parse a length target from the brief, e.g. "长度：500-800字", "300 字以内", "约 300 字". */
 export function parseLengthTarget(briefText: string): { min: number | null; max: number | null; raw: string } | null {
 	for (const line of briefText.split(/\r?\n/)) {
 		const trimmed = line.trim().replace(/^[-*]\s*/, "");
@@ -72,23 +69,10 @@ export function extractBannedWords(briefText: string): string[] {
 export function checkBannedWords(text: string, words: string[]): { word: string; count: number }[] {
 	const hits: { word: string; count: number }[] = [];
 	for (const word of words) {
-		let count = 0;
-		let idx = text.indexOf(word);
-		while (idx !== -1) {
-			count += 1;
-			idx = text.indexOf(word, idx + word.length);
-		}
+		const count = countOccurrences(text, word);
 		if (count > 0) hits.push({ word, count });
 	}
 	return hits;
-}
-
-function splitSentences(text: string): string[] {
-	return text
-		.replace(/\r\n/g, "\n")
-		.split(/(?<=[。！？!?\n])/)
-		.map((s) => s.trim())
-		.filter((s) => s.length > 0);
 }
 
 const MIN_DUPLICATE_PARAGRAPH_CHARS = 10;
@@ -149,7 +133,7 @@ export function runProgramChecks(
 		checks?: GenreChecks;
 		referenceTexts?: string[];
 	},
-): ProgramCheckResult {
+): FullProgramChecks {
 	const checks = { ...DEFAULT_CHECKS, ...(options.checks ?? {}) };
 	const target = options.briefText ? parseLengthTarget(options.briefText) : null;
 	const counts = countWords(text);
@@ -164,6 +148,8 @@ export function runProgramChecks(
 		length: {
 			wordCount: counts.wordCount,
 			cjkChars: counts.cjkChars,
+			kanaChars: counts.kanaChars,
+			hangulChars: counts.hangulChars,
 			latinWords: counts.latinWords,
 			digitGroups: counts.digitGroups,
 			totalCharsNoWhitespace: counts.totalCharsNoWhitespace,
@@ -177,86 +163,10 @@ export function runProgramChecks(
 			checks.duplicates === "off" ? [] : checkDuplicateSentences(text, checks.duplicates === "loose"),
 		lockedMissing: checks.locked ? checkLocked(text, options.lockedSentences) : [],
 		citations: checks.citations ? checkCitations(text, options.referenceTexts ?? []) : [],
+		...runLongFormChecks(text, checks),
+		aitone: runAitoneChecks(text, checks),
 	};
 }
 
-/** Program findings expressed as review leads (kind=other except locked violations). */
-export function programIssuesAsLeads(checks: ProgramCheckResult, paragraphCount: number): ReviewIssue[] {
-	const issues: ReviewIssue[] = [];
-	if (checks.length.withinTarget === false && checks.length.target) {
-		issues.push({
-			kind: "other",
-			paragraph: Math.max(1, paragraphCount),
-			quote: "",
-			reason: `程序检查：长度口径「${checks.length.target.raw}」要求 ${checks.length.target.min ?? "≥0"}-${checks.length.target.max ?? "不限"} 字，实际 ${checks.length.wordCount} 字（字数=中文字符+英文单词+数字组）`,
-			suggestion: "调整篇幅以符合要求口径",
-		});
-	}
-	for (const hit of checks.bannedWords) {
-		issues.push({
-			kind: "other",
-			paragraph: 1,
-			quote: "",
-			reason: `程序检查：禁用词「${hit.word}」出现 ${hit.count} 次`,
-			suggestion: "替换或删除该禁用词",
-		});
-	}
-	for (const dup of checks.duplicateParagraphs) {
-		issues.push({
-			kind: "other",
-			paragraph: dup.paragraph,
-			quote: dup.quote,
-			reason: "程序检查：该段落与前面的段落完全重复",
-			suggestion: "合并或删除重复段落",
-		});
-	}
-	for (const dup of checks.duplicateSentences) {
-		issues.push({
-			kind: "other",
-			paragraph: 1,
-			quote: dup.quote,
-			reason: `程序检查：该片段重复出现 ${dup.count} 次`,
-			suggestion: "只保留一次必要的重复",
-		});
-	}
-	for (const missing of checks.lockedMissing) {
-		issues.push({
-			kind: "locked_violation",
-			paragraph: 1,
-			quote: missing,
-			reason: "程序检查：locked.md 中锁定的原句未在文稿中逐字保留",
-			suggestion: "恢复该原句的原文，或与用户确认解除锁定",
-		});
-	}
-	for (const citation of checks.citations) {
-		issues.push({
-			kind: "unsourced_citation",
-			paragraph: 1,
-			quote: citation.marker,
-			reason: `程序检查：引用标记 ${citation.marker} 在 context/references.md 与 sources/ 中找不到对应`,
-			suggestion: "登记该引用与来源的对应关系，或删除这个引用",
-		});
-	}
-	return issues;
-}
-
-export function formatProgramSummary(checks: ProgramCheckResult): string {
-	const lines: string[] = [];
-	const len = checks.length;
-	lines.push(
-		`字数统计（中文字符+英文单词+数字组）：${len.wordCount}` +
-			(len.target
-				? `，口径「${len.target.raw}」要求 ${len.target.min ?? "≥0"}-${len.target.max ?? "不限"} 字 → ${len.withinTarget ? "达标" : "不达标"}`
-				: "（brief 未指定口径）") +
-			`；纯中文字符 ${len.cjkChars}。`,
-	);
-	if (checks.bannedWords.length > 0) {
-		lines.push(
-			`禁用词：${checks.bannedWords.map((b: { word: string; count: number }) => `「${b.word}」×${b.count}`).join("、")}`,
-		);
-	}
-	if (checks.lockedMissing.length > 0) {
-		lines.push(`锁定原句缺失 ${checks.lockedMissing.length} 条`);
-	}
-	return `程序检查：${lines.join("；")}。（程序结果只是线索，不等于写作质量判断）`;
-}
+// 线索渲染与汇总在 leads.ts（长文与 AI 味的命中明细在各自模块），这里保持同名导出。
+export { formatProgramSummary, programIssuesAsLeads } from "./leads.ts";

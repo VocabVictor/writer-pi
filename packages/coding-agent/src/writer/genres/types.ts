@@ -26,12 +26,48 @@ export interface GenreChecks {
 	length: boolean;
 	/** Enforce banned words from brief.md. */
 	bannedWords: boolean;
-	/** Duplicate paragraph/sentence detection strictness. */
+	/** Duplicate paragraph/sentence detection strictness. Also gates the long-form
+	 * near-duplicate check: a genre that turns repetition detection off (fiction/poetry)
+	 * keeps intentional refrains unflagged there too. */
 	duplicates: "strict" | "loose" | "off";
 	/** Locked sentences must survive verbatim. */
 	locked: boolean;
 	/** Citations in the draft must resolve against provided material/references. */
 	citations: boolean;
+	/** 长文程序检查开关（过长段落、跨段近似重复、等长段落、待补残留）；缺省关闭。 */
+	longForm?: LongFormCheckSwitch;
+	/** AI 味程序检查开关（中文词表+结构正则加权打分，千字归一化）；缺省关闭。 */
+	aitone?: AitoneCheckSwitch;
+}
+
+/** AI 味检查开关：阈值与词表按体裁条件化（正式体裁阈值更高，文学类开指纹词）。 */
+export interface AitoneCheckSwitch {
+	enabled: boolean;
+	/** 加权分值达到该值才产生线索（0-100）；缺省 25（MEDIUM）。 */
+	threshold?: number;
+	/** 小说指纹词检测（文学类开，应用类不开）；缺省 false。 */
+	fingerprint?: boolean;
+	/** 句长方差检查（学术摘要等分场景特征，通用场景实测不成立）；缺省 false。 */
+	burstiness?: boolean;
+}
+
+/** 长文结构/节奏/线索规则（模型判断维度），字数达到阈值或 brief 明确要求长文时注入。 */
+export interface LongFormRules {
+	/** 字数达到该值按长文处理；brief 明确要求长文/长篇时不受此限。 */
+	threshold: number;
+	/** 长文如何组织：章节/小节/论证链/场景目标。规则文本具体可执行。 */
+	structure: string[];
+	/** 段落长度、信息密度与场景/论证的交替。 */
+	pacing: string[];
+	/** 伏笔、前后呼应与跨章节一致性。 */
+	tracking: string[];
+}
+
+/** 长文程序检查开关，由 checker 按体裁配置运行。 */
+export interface LongFormCheckSwitch {
+	enabled: boolean;
+	/** 单段字数上限（字数=中文字符+英文单词+数字组），超过报告过长段落；缺省 500。 */
+	maxParagraphChars?: number;
 }
 
 /**
@@ -71,6 +107,8 @@ export interface GenreConfig {
 	extraKinds: string[];
 	/** Program-check switches for this genre. */
 	checks: GenreChecks;
+	/** 长文规则（结构/节奏/线索）；缺省 = 本体裁不区分长文。 */
+	longForm?: LongFormRules;
 
 	// -- 6. genre-specific tools ----------------------------------------------
 	/** Tool names (beyond read/save_draft/revise_paragraph/diff_versions/revert_version). */

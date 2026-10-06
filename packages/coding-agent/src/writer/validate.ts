@@ -4,11 +4,13 @@
  */
 
 import { splitParagraphs } from "./project.ts";
-import { ISSUE_KINDS, type IssueKind, type ReviewIssue } from "./types.ts";
+import { ISSUE_KINDS, type IssueKind, type ReviewEdit, type ReviewIssue } from "./types.ts";
 
 export interface ReviewValidationOk {
 	ok: true;
 	issues: ReviewIssue[];
+	/** Paragraph replacements the reviewer offered directly (empty unless present in the output). */
+	edits: ReviewEdit[];
 	warnings: string[];
 }
 
@@ -80,24 +82,38 @@ export function validateReview(
 	const paragraphs = splitParagraphs(draftText);
 	const sourceAll = (options?.sourceTexts ?? []).join("\n");
 	const valid: ReviewIssue[] = [];
+	const edits: ReviewEdit[] = [];
 
 	issuesRaw.forEach((item, i) => {
 		const issue = normalizeIssue(item, i, { draftText, paragraphs, sourceAll }, warnings);
 		if (issue) valid.push(issue);
 	});
 
+	const editsRaw = (parsed as { edits?: unknown }).edits;
+	if (editsRaw !== undefined) {
+		if (!Array.isArray(editsRaw)) {
+			warnings.push("edits 不是数组，已丢弃");
+		} else {
+			editsRaw.forEach((item, i) => {
+				const edit = normalizeEdit(item, i, { draftText, paragraphs }, warnings);
+				if (edit) edits.push(edit);
+			});
+		}
+	}
+
 	if (valid.length === 0) {
 		if (errors.length > 0) return { ok: false, errors };
-		if (issuesRaw.length === 0) return { ok: true, issues: [], warnings };
+		if (issuesRaw.length === 0) return { ok: true, issues: [], edits, warnings };
 		return { ok: false, errors: [...warnings, "没有任何一条有效的检查意见"] };
 	}
-	return { ok: true, issues: valid, warnings };
+	return { ok: true, issues: valid, edits, warnings };
 }
 
 interface NormalizeContext {
 	draftText: string;
 	paragraphs: string[];
-	sourceAll: string;
+	/** Optional: edit validation does not resolve source quotes, so this can be absent. */
+	sourceAll?: string;
 }
 
 function normalizeIssue(
@@ -162,4 +178,43 @@ function normalizeIssue(
 		suggestion,
 		source_quote: sourceQuote,
 	};
+}
+
+function normalizeEdit(
+	item: unknown,
+	index: number,
+	ctx: NormalizeContext,
+	warnings: string[],
+): ReviewEdit | undefined {
+	const label = `edits[${index}]`;
+	if (typeof item !== "object" || item === null) {
+		warnings.push(`${label} 不是对象，已丢弃`);
+		return undefined;
+	}
+	const it = item as Record<string, unknown>;
+	const paragraph = it.paragraph;
+	if (
+		typeof paragraph !== "number" ||
+		!Number.isInteger(paragraph) ||
+		paragraph < 1 ||
+		paragraph > ctx.paragraphs.length
+	) {
+		warnings.push(
+			`${label} 的段落编号越界（${JSON.stringify(paragraph ?? null)}，共 ${ctx.paragraphs.length} 段），已丢弃`,
+		);
+		return undefined;
+	}
+	const original = it.original;
+	if (typeof original !== "string" || !ctx.draftText.includes(original.trim())) {
+		warnings.push(
+			`${label} 的原文在文稿中不存在（「${typeof original === "string" ? original.slice(0, 40) : ""}…」），已丢弃`,
+		);
+		return undefined;
+	}
+	const replacement = it.replacement;
+	if (typeof replacement !== "string") {
+		warnings.push(`${label} 缺少 replacement，已丢弃`);
+		return undefined;
+	}
+	return { paragraph, original: original.trim(), replacement: replacement.replace(/\r\n/g, "\n").trim() };
 }

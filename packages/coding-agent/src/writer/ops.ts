@@ -1,14 +1,14 @@
 /**
  * writer-pi slash commands: 操作命令 /draft /continue /outline /revise /voice 与
  * 维度参数（--genre=<体裁>、--voice=<文风|sample>）。项目状态命令（/writing /drafts
- * /diff /revert /genre）在 project-commands.ts。分发入口在 AgentSession.prompt。
+ * /diff /revert /genre）在 status.ts。分发入口在 AgentSession.prompt。
  */
 
 import { MAX_REVISION_ROUNDS, type WritingFlow } from "./flow.ts";
-import { describeSelection, inferGenre } from "./genres/index.ts";
+import { describeSelection, getGenreOrFallback, inferGenre } from "./genres/index.ts";
 import { readBrief, readState } from "./project.ts";
-import { isProjectCommand, projectCommands } from "./project-commands.ts";
 import type { WriterSession, WriterUI } from "./runtime.ts";
+import { isProjectCommand, projectCommands } from "./status.ts";
 import type { StartOptions, WriterOperation } from "./types.ts";
 
 const OPERATION_COMMANDS = new Set(["draft", "continue", "outline", "revise", "voice"]);
@@ -51,16 +51,16 @@ export async function handleWriterCommand(
 		const options = [...inference.tied.slice(0, 3).map((id) => `体裁：${id}`), "用兜底体裁（实用文本）"];
 		const choice = await ui.select("材料线索指向多个体裁，用哪个？", options);
 		if (choice === undefined) return;
-		// Picking the fallback keeps dimensions.genre unset → flow-start falls back.
+		// Picking the fallback keeps dimensions.genre unset → start.ts falls back.
 		if (choice.startsWith("体裁：")) dimensions.genre = choice.slice(3);
-	} else {
+	} else if (inference.reason !== "fallback") {
+		// 兜底体裁不显式传入：start.ts 解析链上 settings 默认排在兜底之前。
 		dimensions.genre = inference.genre.id;
 	}
 
 	const startOptions: StartOptions = { ...dimensions };
 	await flow.start(operation, request, startOptions);
 	if (flow.isActive && flow.genreId) {
-		const { getGenreOrFallback } = await import("./genres/index.ts");
 		ui.notify(
 			describeSelection(getGenreOrFallback(flow.genreId), inference.reason, dimensions.voice ?? null, operation),
 		);
@@ -85,12 +85,24 @@ export function parseDimensionArgs(
 			dimensions.voice = "sample";
 			continue;
 		}
+		if (t === "--long") {
+			dimensions.long = true;
+			continue;
+		}
 		if (t.startsWith("--genre=")) {
 			dimensions.genre = t.slice(8);
 			continue;
 		}
 		if (t === "--genre" && tokens[i + 1] && !tokens[i + 1].startsWith("-")) {
 			dimensions.genre = tokens[++i];
+			continue;
+		}
+		if (t.startsWith("--format=")) {
+			dimensions.format = t.slice(9);
+			continue;
+		}
+		if (t === "--format" && tokens[i + 1] && !tokens[i + 1].startsWith("-")) {
+			dimensions.format = tokens[++i];
 			continue;
 		}
 		if (t.startsWith("--voice=")) {

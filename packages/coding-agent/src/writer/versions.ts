@@ -8,13 +8,14 @@
 import { readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import * as Diff from "diff";
-import { DRAFTS_DIR, fileExists, REVIEWS_DIR, readState, writeState } from "./project.ts";
+import { extensionFor } from "./formats.ts";
+import { DRAFTS_DIR, fileExists, REVIEWS_DIR, readState, updateState } from "./project.ts";
 import type { DraftVersionInfo, WriterStage, WriterState } from "./types.ts";
 
-const VERSION_RE = /^draft-(\d+)\.md$/;
+const VERSION_RE = /^draft-(\d+)\.(md|tex)$/;
 
-export function draftPathFor(version: number): string {
-	return `${DRAFTS_DIR}/draft-${String(version).padStart(3, "0")}.md`;
+export function draftPathFor(version: number, extension = "md"): string {
+	return `${DRAFTS_DIR}/draft-${String(version).padStart(3, "0")}.${extension}`;
 }
 
 export function reviewPathFor(version: number): string {
@@ -33,22 +34,25 @@ export async function saveDraft(
 	note?: string,
 	stateOverrides?: Partial<WriterState>,
 ): Promise<{ path: string; version: number; state: WriterState }> {
-	const state = await readState(root);
-	let version = Math.max(state.draftCount, 0) + 1;
-	let relPath = draftPathFor(version);
-	while (await fileExists(join(root, relPath))) {
-		// File already on disk (e.g. user dropped a manuscript there manually): skip the number.
-		version += 1;
-		relPath = draftPathFor(version);
-	}
-	await writeFile(join(root, relPath), content, { encoding: "utf-8", flag: "wx" });
-	state.draftCount = version;
-	state.currentDraft = relPath;
-	// Store the note so /drafts can show it per version.
-	if (note !== undefined) state.draftNotes = { ...state.draftNotes, [version]: note };
-	Object.assign(state, stateOverrides);
-	await writeState(root, state);
-	return { path: relPath, version, state };
+	// The version probe and file write run inside the state lock so a concurrent flow-turn
+	// write cannot interleave the read-modify-write.
+	return updateState(root, async (state) => {
+		const extension = extensionFor(state.format);
+		let version = Math.max(state.draftCount, 0) + 1;
+		let relPath = draftPathFor(version, extension);
+		while (await fileExists(join(root, relPath))) {
+			// File already on disk (e.g. user dropped a manuscript there manually): skip the number.
+			version += 1;
+			relPath = draftPathFor(version, extension);
+		}
+		await writeFile(join(root, relPath), content, { encoding: "utf-8", flag: "wx" });
+		state.draftCount = version;
+		state.currentDraft = relPath;
+		// Store the note so /drafts can show it per version.
+		if (note !== undefined) state.draftNotes = { ...state.draftNotes, [version]: note };
+		Object.assign(state, stateOverrides);
+		return { path: relPath, version, state };
+	});
 }
 
 export async function readDraft(root: string, relPath: string): Promise<string | null> {
@@ -96,7 +100,8 @@ export async function revertTo(
 	version: number,
 	note?: string,
 ): Promise<{ path: string; version: number } | null> {
-	const relPath = draftPathFor(version);
+	const relPath = await listedDraftPath(root, version);
+	if (relPath === null) return null;
 	const content = await readDraft(root, relPath);
 	if (content === null) return null;
 	const saved = await saveDraft(root, content, note ?? `reverted from ${relPath}`);
@@ -111,28 +116,38 @@ export function diffTexts(fromLabel: string, toLabel: string, from: string, to: 
 
 /** Diff two draft versions by version number; defaults to the two most recent versions. */
 export async function diffDrafts(root: string, fromVersion?: number, toVersion?: number): Promise<string | null> {
-	const versions = (await listDrafts(root)).map((d) => d.version);
-	if (versions.length === 0) return null;
-	const from = fromVersion ?? versions[versions.length - 2];
-	const to = toVersion ?? versions[versions.length - 1];
+	const drafts = await listDrafts(root);
+	if (drafts.length === 0) return null;
+	const find = (version?: number) => drafts.find((d) => d.version === version)?.path;
+	const from = fromVersion ?? drafts[drafts.length - 2]?.version;
+	const to = toVersion ?? drafts[drafts.length - 1]?.version;
 	if (from === undefined || to === undefined || from === to) return null;
-	const a = await readDraft(root, draftPathFor(from));
-	const b = await readDraft(root, draftPathFor(to));
+	const fromPath = find(from);
+	const toPath = find(to);
+	if (!fromPath || !toPath) return null;
+	const a = await readDraft(root, fromPath);
+	const b = await readDraft(root, toPath);
 	if (a === null || b === null) return null;
-	return diffTexts(draftPathFor(from), draftPathFor(to), a, b);
+	return diffTexts(fromPath, toPath, a, b);
+}
+
+/** Path of a draft version as actually listed on disk (extension may vary by format); null when absent. */
+async function listedDraftPath(root: string, version: number): Promise<string | null> {
+	const drafts = await listDrafts(root);
+	return drafts.find((d) => d.version === version)?.path ?? null;
 }
 
 /** Stage helper used by the writing flow to persist stage transitions alongside state. */
-export async function setStage(
+export function setStage(
 	root: string,
 	stage: WriterStage,
 	mode?: WriterState["mode"],
 	lastRequest?: string,
 ): Promise<WriterState> {
-	const state = await readState(root);
-	state.stage = stage;
-	if (mode !== undefined) state.mode = mode;
-	if (lastRequest !== undefined) state.lastRequest = lastRequest;
-	await writeState(root, state);
-	return state;
+	return updateState(root, (state) => {
+		state.stage = stage;
+		if (mode !== undefined) state.mode = mode;
+		if (lastRequest !== undefined) state.lastRequest = lastRequest;
+		return state;
+	});
 }

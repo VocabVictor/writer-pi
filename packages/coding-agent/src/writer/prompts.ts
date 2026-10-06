@@ -1,7 +1,7 @@
 /**
  * Stage instructions and the writer-pi system prompt.
  * 通用系统提示词只覆盖通用规则；体裁规则由 genres/ 配置提供并注入到当轮指令
- * （见 genre-instructions.ts）。流程控制（轮数、保存、校验）由 flow.ts 的代码保证。
+ * （见 instructions.ts）。流程控制（轮数、保存、校验）由 flow.ts 的代码保证。
  */
 
 import type { ReviewIssue } from "./types.ts";
@@ -42,6 +42,10 @@ export interface DraftContext {
 	/** Operation guidance from the genre's recommended stages. */
 	operationGuidance: string;
 	briefCreated: boolean;
+	/** 输出格式要求（formats.ts 注册表）；null 未设置。 */
+	formatInstruction?: string | null;
+	/** settings.json 的默认模板（defaultTemplate）。 */
+	defaultTemplate?: string | null;
 }
 
 const OPERATION_TASK: Record<DraftContext["operation"], string> = {
@@ -62,6 +66,15 @@ export function buildDraftInstruction(ctx: DraftContext): string {
 		parts.push("项目里还没有 brief.md，按上面的本次要求写作即可。");
 	}
 	parts.push(`# 体裁规则\n\n${ctx.genreRules.trim()}`);
+	parts.push(
+		"# 语言纪律\n\n正文用本次要求的目标语言写，整篇保持同一语言：要求中文时不夹英文词（代码、命令、术语与专有名词除外）。材料或用户原话里的外语引文保留原样。",
+	);
+	if (ctx.formatInstruction) {
+		parts.push(`# 输出格式\n\n${ctx.formatInstruction.trim()}`);
+	}
+	if (ctx.defaultTemplate) {
+		parts.push(`# 默认模板（settings.json 的 defaultTemplate）\n\n${ctx.defaultTemplate.trim()}`);
+	}
 	if (ctx.lockedSentences.length > 0) {
 		parts.push(`# locked.md（以下句子必须逐字保留）\n\n${ctx.lockedSentences.map((s) => `- ${s}`).join("\n")}`);
 	}
@@ -124,6 +137,8 @@ export interface ReviewContext {
 	completion: string[];
 	/** Issue kinds allowed for this genre (used in the format description). */
 	allowedKinds: string[];
+	/** Long-form reviews may also return paragraph replacements, applied directly in the checking round. */
+	directEdits?: boolean;
 }
 
 const UNIVERSAL_REVIEW_FOCUS = [
@@ -177,16 +192,19 @@ export function buildReviewInstruction(ctx: ReviewContext): string {
 			.map((f) => `- ${f}`)
 			.join(
 				"\n",
-			)}\n\n# 完成条件（不满足时用 task_incomplete 报告缺什么）\n\n${ctx.completion.map((c) => `- ${c}`).join("\n")}\n\n${buildReviewFormat(ctx.allowedKinds)}`,
+			)}\n\n# 完成条件（不满足时用 task_incomplete 报告缺什么）\n\n${ctx.completion.map((c) => `- ${c}`).join("\n")}\n\n${buildReviewFormat(ctx.allowedKinds, ctx.directEdits === true)}`,
 	);
 	return parts.join("\n\n");
 }
 
-function buildReviewFormat(allowedKinds: string[]): string {
+function buildReviewFormat(allowedKinds: string[], directEdits: boolean): string {
 	const kinds = allowedKinds.join("|");
+	const edits = directEdits
+		? `\n\n对每个要修改的段落，再在 edits 里给一条替换：original 必须逐字来自当前文稿（全文唯一），replacement 是新段落内容，删除段落时传空字符串。没有要直接替换的段落就省略 edits。\n\n{"edits": [{"paragraph": 段落编号, "original": "要替换的段落原文（逐字）", "replacement": "新段落内容"}]}`
+		: "";
 	return `把检查结果作为一个 JSON 对象输出，除此之外不要输出任何别的文字（不要代码块围栏、不要解释）。kind 从这些值里选：${kinds}。
 
-{"issues": [{"kind": "<上述值之一>", "paragraph": 段落编号(从1开始), "quote": "文稿中的原句（逐字引用）", "reason": "具体问题", "suggestion": "修改建议", "source_quote": "可选：对应素材引用"}]}
+{"issues": [{"kind": "<上述值之一>", "paragraph": 段落编号(从1开始), "quote": "文稿中的原句（逐字引用）", "reason": "具体问题", "suggestion": "修改建议", "source_quote": "可选：对应素材引用"}]}${edits}
 
 没有问题时输出 {"issues": []}。quote 必须逐字出现在文稿中，否则该条无效。paragraph 不能超过文稿段落数。`;
 }

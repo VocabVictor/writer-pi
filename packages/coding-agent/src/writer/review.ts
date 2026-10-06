@@ -4,19 +4,19 @@
  */
 
 import { readFile, writeFile } from "node:fs/promises";
-import { extractBannedWords, programIssuesAsLeads, runProgramChecks } from "./checker.ts";
-import { allowedKinds } from "./genre-instructions.ts";
+import { extractBannedWords, type FullProgramChecks, programIssuesAsLeads, runProgramChecks } from "./checker.ts";
 import type { GenreConfig } from "./genres/types.ts";
-import { listTextFiles, parseLockedSentences, readBrief, readProjectFile, readState, writeState } from "./project.ts";
+import { allowedKinds } from "./instructions.ts";
+import { listTextFiles, parseLockedSentences, readBrief, readProjectFile, updateState } from "./project.ts";
 import { buildReviewInstruction } from "./prompts.ts";
-import type { ProgramCheckResult, ReviewFile } from "./types.ts";
+import type { ReviewFile } from "./types.ts";
 import { reviewPathFor } from "./versions.ts";
 
 const SOURCE_EXCERPT_LIMIT = 4000;
 
 export interface ReviewRoundPreparation {
 	instruction: string;
-	programChecks: ProgramCheckResult;
+	programChecks: FullProgramChecks;
 }
 
 /** Run program checks (per the genre's switches) and build the next semantic-review instruction. */
@@ -25,6 +25,7 @@ export async function prepareReviewRound(
 	draftPath: string,
 	round: number,
 	genre: GenreConfig,
+	options?: { directEdits?: boolean },
 ): Promise<ReviewRoundPreparation> {
 	const draftText = (await readDraftText(root, draftPath)) ?? "";
 	const briefText = await readBrief(root);
@@ -50,6 +51,7 @@ export async function prepareReviewRound(
 		reviewFocus: genre.reviewFocus,
 		completion: genre.completion,
 		allowedKinds: allowedKinds(genre),
+		directEdits: options?.directEdits === true,
 	});
 	return { instruction, programChecks };
 }
@@ -72,19 +74,48 @@ export async function loadWriterContext(root: string): Promise<{
 	sourceFiles: { path: string; name: string }[];
 }> {
 	const briefRaw = await readBrief(root);
-	const briefContent = briefRaw
-		? briefRaw
-				.split(/\r?\n/)
-				.map((l) => l.trim())
-				.filter((l) => l.length > 0 && !l.startsWith("#") && !l.startsWith("<!--") && !l.startsWith("-->"))
-				.join("\n")
-		: "";
 	return {
 		briefText: briefRaw,
-		briefWasEmpty: briefContent.length === 0,
+		briefWasEmpty: realBriefContent(briefRaw).length === 0,
 		lockedSentences: parseLockedSentences((await readProjectFile(root, "locked.md")) ?? ""),
 		sourceFiles: await listTextFiles(root, "sources"),
 	};
+}
+
+/**
+ * Real brief content = text minus HTML comment blocks (multi-line) and headings. The template's
+ * indented comment lines must not count as content, or the request never gets seeded.
+ */
+function realBriefContent(briefRaw: string | null): string {
+	if (!briefRaw) return "";
+	const kept: string[] = [];
+	let inComment = false;
+	for (const rawLine of briefRaw.split(/\r?\n/)) {
+		let rest = rawLine.trim();
+		let line = "";
+		while (rest.length > 0) {
+			if (inComment) {
+				const end = rest.indexOf("-->");
+				if (end === -1) {
+					rest = "";
+					break;
+				}
+				rest = rest.slice(end + 3).trim();
+				inComment = false;
+				continue;
+			}
+			const start = rest.indexOf("<!--");
+			if (start === -1) {
+				line += rest;
+				break;
+			}
+			line += rest.slice(0, start);
+			rest = rest.slice(start + 4);
+			inComment = true;
+		}
+		if (line.length > 0 && !line.startsWith("#")) kept.push(line);
+	}
+	return kept.join("\n");
 }
 
 export async function readSourceTexts(root: string): Promise<string[]> {
@@ -131,12 +162,17 @@ export async function persistReviewFile(
 	root: string,
 	data: Omit<ReviewFile, "version" | "createdAt">,
 ): Promise<string> {
-	const state = await readState(root);
-	const reviewNumber = state.reviewCount + 1;
-	const relPath = reviewPathFor(reviewNumber);
-	const review: ReviewFile = { version: 1, createdAt: new Date().toISOString(), ...data };
-	await writeFile(`${root}/${relPath}`, `${JSON.stringify(review, null, "\t")}\n`, { encoding: "utf-8", flag: "wx" });
-	state.reviewCount = reviewNumber;
-	await writeState(root, state);
-	return relPath;
+	// The review number probe and file write run inside the state lock so a concurrent
+	// flow-turn write cannot interleave the read-modify-write.
+	return updateState(root, async (state) => {
+		const reviewNumber = state.reviewCount + 1;
+		const relPath = reviewPathFor(reviewNumber);
+		const review: ReviewFile = { version: 1, createdAt: new Date().toISOString(), ...data };
+		await writeFile(`${root}/${relPath}`, `${JSON.stringify(review, null, "\t")}\n`, {
+			encoding: "utf-8",
+			flag: "wx",
+		});
+		state.reviewCount = reviewNumber;
+		return relPath;
+	});
 }
