@@ -10,20 +10,28 @@ import { fileURLToPath } from "node:url";
 import type { Provider } from "@earendil-works/pi-ai";
 import type { KeyId } from "@earendil-works/pi-tui";
 import type { createJiti } from "jiti";
-import { CONFIG_DIR_NAME, getAgentDir, isBunBinary, isBundledNode } from "../../config.ts";
+import {
+	CONFIG_DIR_NAME,
+	getAgentDir,
+	getPackageEntryPath,
+	getWorkspacePackagesRoot,
+	isBunBinary,
+	isBundledNode,
+} from "../../config.ts";
 import { resolvePath } from "../../utils/paths.ts";
-import { createEventBus, type EventBus } from "../event-bus.ts";
+import { createEventBus, type EventBus } from "../eventbus.ts";
 import type { ExecOptions } from "../exec.ts";
 import { execCommand } from "../exec.ts";
-import { type McpServerConfig, McpServerRegistry, mcpNamespace, validateMcpServerConfig } from "../mcp-servers.ts";
-import { readPiManifest } from "../pi-manifest.ts";
-import { createSyntheticSourceInfo, getSyntheticPathSource, isSyntheticPath } from "../source-info.ts";
+import { type McpServerConfig, McpServerRegistry, mcpNamespace, validateMcpServerConfig } from "../mcpservers.ts";
+import { readPiManifest } from "../pimanifest.ts";
+import { createSyntheticSourceInfo, getSyntheticPathSource, isSyntheticPath } from "../sourceinfo.ts";
 import { time } from "../timings.ts";
-import type { ModelRouteRequest, VirtualModelDefinition } from "../virtual-models.ts";
+import type { ModelRouteRequest, VirtualModelDefinition } from "../virtualmodels.ts";
 import type {
 	EntryRenderer,
 	Extension,
 	ExtensionAPI,
+	ExtensionContext,
 	ExtensionFactory,
 	ExtensionRuntime,
 	ExtensionVirtualModel,
@@ -46,7 +54,7 @@ const usesEmbeddedModules = isBunBinary || isNodeSeaBinary || isBundledNode;
 let createJitiPromise: Promise<typeof createJiti> | undefined;
 
 function getCreateJiti(): Promise<typeof createJiti> {
-	createJitiPromise ??= (usesEmbeddedModules ? import("./jiti-static-loader.ts") : import("./jiti-loader.ts")).then(
+	createJitiPromise ??= (usesEmbeddedModules ? import("./jitistatic.ts") : import("./jitilazy.ts")).then(
 		(module) => module.createJiti,
 	);
 	return createJitiPromise;
@@ -55,7 +63,7 @@ function getCreateJiti(): Promise<typeof createJiti> {
 let virtualModulesPromise: Promise<Record<string, unknown>> | undefined;
 
 function getVirtualModules(): Promise<Record<string, unknown>> {
-	virtualModulesPromise ??= import("./virtual-modules.ts").then((module) => module.VIRTUAL_MODULES);
+	virtualModulesPromise ??= import("./virtualmodules.ts").then((module) => module.VIRTUAL_MODULES);
 	return virtualModulesPromise;
 }
 
@@ -68,14 +76,13 @@ let _aliases: Record<string, string> | null = null;
 function getAliases(): Record<string, string> {
 	if (_aliases) return _aliases;
 
-	const __dirname = path.dirname(fileURLToPath(import.meta.url));
-	const packageIndex = path.resolve(__dirname, "../..", "index.js");
+	const packageIndex = getPackageEntryPath();
 
 	const typeboxEntry = require.resolve("typebox");
 	const typeboxCompileEntry = require.resolve("typebox/compile");
 	const typeboxValueEntry = require.resolve("typebox/value");
 
-	const packagesRoot = path.resolve(__dirname, "../../../../");
+	const packagesRoot = getWorkspacePackagesRoot();
 	const resolveWorkspaceOrImport = (workspaceRelativePath: string, specifier: string): string => {
 		const workspacePath = path.join(packagesRoot, workspaceRelativePath);
 		if (fs.existsSync(workspacePath)) {
@@ -320,7 +327,7 @@ function createExtensionAPI(
 			shortcut: KeyId,
 			options: {
 				description?: string;
-				handler: (ctx: import("./types.ts").ExtensionContext) => Promise<void> | void;
+				handler: (ctx: ExtensionContext) => Promise<void> | void;
 			},
 		): void {
 			assertActive();

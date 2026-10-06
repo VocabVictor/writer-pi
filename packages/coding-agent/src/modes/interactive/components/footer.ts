@@ -1,10 +1,10 @@
 import { isAbsolute, relative, resolve, sep } from "node:path";
 import { type Component, truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
-import type { AgentSession } from "../../../core/agent-session.ts";
 import { areExperimentalFeaturesEnabled } from "../../../core/experimental.ts";
 import type { ContextUsage } from "../../../core/extensions/types.ts";
-import type { ReadonlyFooterDataProvider } from "../../../core/footer-data-provider.ts";
-import { addUsageToTotals, createUsageTotals, type UsageTotals } from "../../../core/usage-totals.ts";
+import type { ReadonlyFooterDataProvider } from "../../../core/footerdata.ts";
+import type { AgentSession } from "../../../core/session.ts";
+import { addUsageToTotals, createUsageTotals, type UsageTotals } from "../../../core/usagetotals.ts";
 import { theme } from "../theme/theme.ts";
 
 /**
@@ -80,7 +80,7 @@ export class FooterComponent implements Component {
 
 	/**
 	 * No-op: git branch caching now handled by provider.
-	 * Kept for compatibility with existing call sites in interactive-mode.
+	 * Kept for compatibility with existing call sites in the interactive mode.
 	 */
 	invalidate(): void {
 		// No-op: git branch is cached/invalidated by provider

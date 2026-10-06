@@ -29,9 +29,9 @@ import {
 } from "@earendil-works/pi-codemode";
 import { getCodemodeWorkerSpecifier, getQuickJSWasmPath } from "../../config.ts";
 import type { ExtensionToolContext, ToolNamespace } from "../../core/extensions/types.ts";
-import type { SessionEntry } from "../../core/session-manager.ts";
-import { combineUsage } from "../../core/usage-totals.ts";
-import { Bm25Ranker, createToolSearchDocument, DEFAULT_TOOL_SEARCH_LIMIT } from "../tool-search/tool.ts";
+import type { SessionEntry } from "../../core/sessionmanager.ts";
+import { combineUsage } from "../../core/usagetotals.ts";
+import { Bm25Ranker, createToolSearchDocument, DEFAULT_TOOL_SEARCH_LIMIT } from "../toolsearch/tool.ts";
 import {
 	CODEMODE_DOCS_PATH,
 	CODEMODE_STORE_ENTRY_TYPE,

@@ -1,4 +1,4 @@
-import { createModelRegistry, getModelRuntime } from "./model-runtime-test-utils.ts";
+import { createModelRegistry, getModelRuntime } from "./runtimeutils.ts";
 /**
  * Shared test utilities for coding-agent tests.
  */
@@ -10,9 +10,8 @@ import { Agent } from "@earendil-works/pi-agent-core";
 import type { OAuthCredentials } from "@earendil-works/pi-ai";
 import { getModel, streamSimple } from "@earendil-works/pi-ai/compat";
 import { builtinProviders } from "@earendil-works/pi-ai/providers/all";
-import { AgentSession } from "../src/core/agent-session.ts";
-import { AuthStorage } from "../src/core/auth-storage.ts";
-import { createEventBus } from "../src/core/event-bus.ts";
+import { AuthStorage } from "../src/core/authstorage.ts";
+import { createEventBus } from "../src/core/eventbus.ts";
 import type {
 	Extension,
 	ExtensionFactory,
@@ -20,10 +19,11 @@ import type {
 	LoadExtensionsResult,
 } from "../src/core/extensions/index.ts";
 import { createExtensionRuntime, loadExtensionFromFactory } from "../src/core/extensions/loader.ts";
-import type { ResourceLoader } from "../src/core/resource-loader.ts";
-import { SessionManager } from "../src/core/session-manager.ts";
-import { SettingsManager } from "../src/core/settings-manager.ts";
-import { createCodingTools } from "../src/index.ts";
+import type { ResourceLoader } from "../src/core/resourceloader.ts";
+import { AgentSession } from "../src/core/session.ts";
+import { SessionManager } from "../src/core/sessionmanager.ts";
+import { SettingsManager } from "../src/core/settingsmanager.ts";
+import { createAllTools } from "../src/index.ts";
 
 /**
  * API key for authenticated tests. Tests using this should be wrapped in
@@ -260,7 +260,7 @@ export async function createTestSession(options: TestSessionOptions = {}): Promi
 		initialState: {
 			model,
 			systemPrompt: options.systemPrompt ?? "You are a helpful assistant. Be extremely concise.",
-			tools: createCodingTools(process.cwd()),
+			tools: createAllTools(process.cwd()),
 		},
 		streamFn: streamSimple,
 	});

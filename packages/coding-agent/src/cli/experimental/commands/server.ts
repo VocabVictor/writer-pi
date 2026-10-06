@@ -6,7 +6,7 @@ import {
 	authTokenOption,
 	parseAuth,
 	unsupportedOptions,
-} from "../command-options.ts";
+} from "../commandoptions.ts";
 
 export interface ServerCommand {
 	readonly command: "server";

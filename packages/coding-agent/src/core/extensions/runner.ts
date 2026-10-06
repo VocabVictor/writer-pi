@@ -12,19 +12,19 @@ import {
 } from "@earendil-works/pi-ai";
 import type { KeyId } from "@earendil-works/pi-tui";
 import { type Theme, theme } from "../../modes/interactive/theme/theme.ts";
-import type { CacheWarmingAction } from "../cache-warmer.ts";
+import type { CacheWarmingAction } from "../cachewarmer.ts";
 import type { ResourceDiagnostic } from "../diagnostics.ts";
 import type { KeybindingsConfig } from "../keybindings.ts";
-import type { ModelRegistry } from "../model-registry.ts";
-import type { ScopedModel } from "../model-resolver.ts";
-import type { SessionManager } from "../session-manager.ts";
+import type { ModelRegistry } from "../modelregistry.ts";
+import type { ScopedModel } from "../modelresolver.ts";
+import type { SessionManager } from "../sessionmanager.ts";
 import {
 	type BuildSystemPromptOptions,
 	buildSystemPrompt,
 	type NormalizedBuildSystemPromptOptions,
 	normalizeBuildSystemPromptOptions,
-} from "../system-prompt.ts";
-import type { VirtualModelDefinition } from "../virtual-models.ts";
+} from "../systemprompt.ts";
+import type { VirtualModelDefinition } from "../virtualmodels.ts";
 import type {
 	AgentBeforeSettleEvent,
 	BeforeAgentStartEvent,

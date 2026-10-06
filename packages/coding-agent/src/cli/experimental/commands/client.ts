@@ -7,7 +7,7 @@ import {
 	parseAuth,
 	type TransportAddress,
 	unsupportedOptions,
-} from "../command-options.ts";
+} from "../commandoptions.ts";
 
 export interface ClientCommand {
 	readonly command: "client";

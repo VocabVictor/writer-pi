@@ -3,10 +3,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { InMemoryModelsStore } from "@earendil-works/pi-ai";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { AuthStorage } from "../src/core/auth-storage.ts";
-import { ModelRuntime } from "../src/core/model-runtime.ts";
+import { AuthStorage } from "../src/core/authstorage.ts";
+import { ModelRuntime } from "../src/core/modelruntime.ts";
 import { RADIUS_PROVIDER_ID } from "../src/core/radius.ts";
-import { allowNetwork } from "./test-network-env.ts";
+import { allowNetwork } from "./networkenv.ts";
 
 function radiusOAuthCredential(gatewayBaseUrl: string) {
 	return {

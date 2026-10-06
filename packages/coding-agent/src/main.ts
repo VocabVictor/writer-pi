@@ -15,7 +15,7 @@ import {
 	checkProviderAuth,
 	createAuthCheckModelRuntime,
 	getProviderCredential,
-} from "./cli/auth-check.ts";
+} from "./cli/authcheck.ts";
 import {
 	type AuthCommand,
 	AuthCommandError,
@@ -25,51 +25,51 @@ import {
 	parseAuthCommand,
 	printAuthCommandHelp,
 	validateAuthCommandArgs,
-} from "./cli/auth-command.ts";
-import { resolveCredentialForPrint } from "./cli/credential-print.ts";
-import { processFileArguments } from "./cli/file-processor.ts";
-import { buildInitialMessage } from "./cli/initial-message.ts";
-import { listModels } from "./cli/list-models.ts";
-import { createProjectTrustContext } from "./cli/project-trust.ts";
-import { selectSession } from "./cli/session-picker.ts";
-import { shouldRunFirstTimeSetup, showFirstTimeSetup, showStartupSelector } from "./cli/startup-ui.ts";
+} from "./cli/authcommand.ts";
+import { resolveCredentialForPrint } from "./cli/credentials.ts";
+import { processFileArguments } from "./cli/files.ts";
+import { buildInitialMessage } from "./cli/initialmessage.ts";
+import { listModels } from "./cli/models.ts";
+import { createProjectTrustContext } from "./cli/projecttrust.ts";
+import { selectSession } from "./cli/sessionpicker.ts";
+import { shouldRunFirstTimeSetup, showFirstTimeSetup, showStartupSelector } from "./cli/startupui.ts";
 import { APP_NAME, ENV_SESSION_DIR, expandTildePath, getAgentDir, getPackageDir, VERSION } from "./config.ts";
-import { type CreateAgentSessionRuntimeFactory, createAgentSessionRuntime } from "./core/agent-session-runtime.ts";
-import {
-	type AgentSessionRuntimeDiagnostic,
-	createAgentSessionFromServices,
-	createAgentSessionServices,
-} from "./core/agent-session-services.ts";
-import { formatNoModelsAvailableMessage } from "./core/auth-guidance.ts";
-import { AuthStorage, ReadOnlyAuthStorage } from "./core/auth-storage.ts";
-import { exportFromFile } from "./core/export-html/index.ts";
+import { formatNoModelsAvailableMessage } from "./core/authguidance.ts";
+import { AuthStorage, ReadOnlyAuthStorage } from "./core/authstorage.ts";
+import { exportFromFile } from "./core/exporthtml/index.ts";
 import type { InlineExtension } from "./core/extensions/types.ts";
-import { applyHttpProxySettings, configureHttpDispatcher } from "./core/http-dispatcher.ts";
-import { resolveCliModel, resolveModelScope, type ScopedModel } from "./core/model-resolver.ts";
-import { ModelRuntime } from "./core/model-runtime.ts";
-import { restoreStdout, takeOverStdout } from "./core/output-guard.ts";
-import { type AppMode, resolveProjectTrusted } from "./core/project-trust.ts";
+import { applyHttpProxySettings, configureHttpDispatcher } from "./core/httpdispatcher.ts";
+import { resolveCliModel, resolveModelScope, type ScopedModel } from "./core/modelresolver.ts";
+import { ModelRuntime } from "./core/modelruntime.ts";
+import { restoreStdout, takeOverStdout } from "./core/outputguard.ts";
+import { type AppMode, resolveProjectTrusted } from "./core/projecttrust.ts";
 import type { CreateAgentSessionOptions } from "./core/sdk.ts";
 import {
 	formatMissingSessionCwdPrompt,
 	getMissingSessionCwdIssue,
 	MissingSessionCwdError,
 	type SessionCwdIssue,
-} from "./core/session-cwd.ts";
-import { assertValidSessionId, SessionManager } from "./core/session-manager.ts";
-import { collectSettingsDiagnostics, deduplicateDiagnostics } from "./core/settings-diagnostics.ts";
-import { SettingsManager } from "./core/settings-manager.ts";
+} from "./core/sessioncwd.ts";
+import { assertValidSessionId, SessionManager } from "./core/sessionmanager.ts";
+import { type CreateAgentSessionRuntimeFactory, createAgentSessionRuntime } from "./core/sessionruntime.ts";
+import {
+	type AgentSessionRuntimeDiagnostic,
+	createAgentSessionFromServices,
+	createAgentSessionServices,
+} from "./core/sessionservices.ts";
+import { collectSettingsDiagnostics, deduplicateDiagnostics } from "./core/settingsdiagnostics.ts";
+import { SettingsManager } from "./core/settingsmanager.ts";
 import { printTimings, resetTimings, time } from "./core/timings.ts";
-import { hasTrustRequiringProjectResources, ProjectTrustStore } from "./core/trust-manager.ts";
+import { hasTrustRequiringProjectResources, ProjectTrustStore } from "./core/trustmanager.ts";
 import { builtInExtensions } from "./extensions/index.ts";
 import { loadMcpCommand } from "./extensions/mcp/cli.lazy.ts";
 import { runMigrations, showDeprecationWarnings } from "./migrations.ts";
 import { InteractiveMode, runPrintMode, runRpcMode } from "./modes/index.ts";
 import { initTheme, setThemeJsonValidator, stopThemeWatcher } from "./modes/interactive/theme/theme.ts";
-import { validateThemeJson } from "./modes/interactive/theme/theme-json.ts";
-import { cleanupManagedInstall, handleConfigCommand, handlePackageCommand } from "./package-manager-cli.ts";
+import { validateThemeJson } from "./modes/interactive/theme/themejson.ts";
+import { cleanupManagedInstall, handleConfigCommand, handlePackageCommand } from "./packagemanagercli.ts";
 import { isLocalPath, normalizePath, resolvePath } from "./utils/paths.ts";
-import { cleanupWindowsSelfUpdateQuarantine } from "./utils/windows-self-update.ts";
+import { cleanupWindowsSelfUpdateQuarantine } from "./utils/windowsselfupdate.ts";
 
 const EXTENSION_LOAD_FAILURE_HINT = `Hint: Start without extensions using "${APP_NAME} -ne".`;
 

@@ -2,33 +2,10 @@
  * Core modules shared between all run modes.
  */
 
-export {
-	AgentSession,
-	type AgentSessionConfig,
-	type AgentSessionEvent,
-	type AgentSessionEventListener,
-	type ModelCycleResult,
-	type PromptOptions,
-	type SessionStats,
-} from "./agent-session.ts";
-export {
-	AgentSessionRuntime,
-	type CreateAgentSessionRuntimeFactory,
-	type CreateAgentSessionRuntimeResult,
-	createAgentSessionRuntime,
-} from "./agent-session-runtime.ts";
-export {
-	type AgentSessionRuntimeDiagnostic,
-	type AgentSessionServices,
-	type CreateAgentSessionFromServicesOptions,
-	type CreateAgentSessionServicesOptions,
-	createAgentSessionFromServices,
-	createAgentSessionServices,
-} from "./agent-session-services.ts";
-export { type BashExecutorOptions, type BashResult, executeBashWithOperations } from "./bash-executor.ts";
-export type { CacheWarmingDecision, CacheWarmingStatus } from "./cache-warmer.ts";
+export { type BashExecutorOptions, type BashResult, executeBashWithOperations } from "./bashexecutor.ts";
+export type { CacheWarmingDecision, CacheWarmingStatus } from "./cachewarmer.ts";
 export type { CompactionResult } from "./compaction/index.ts";
-export { createEventBus, type EventBus, type EventBusController } from "./event-bus.ts";
+export { createEventBus, type EventBus, type EventBusController } from "./eventbus.ts";
 export { areExperimentalFeaturesEnabled } from "./experimental.ts";
 // Extensions system
 export {
@@ -94,4 +71,27 @@ export {
 	type TurnStartEvent,
 	type WorkingIndicatorOptions,
 } from "./extensions/index.ts";
-export { createSyntheticSourceInfo } from "./source-info.ts";
+export {
+	AgentSession,
+	type AgentSessionConfig,
+	type AgentSessionEvent,
+	type AgentSessionEventListener,
+	type ModelCycleResult,
+	type PromptOptions,
+	type SessionStats,
+} from "./session.ts";
+export {
+	AgentSessionRuntime,
+	type CreateAgentSessionRuntimeFactory,
+	type CreateAgentSessionRuntimeResult,
+	createAgentSessionRuntime,
+} from "./sessionruntime.ts";
+export {
+	type AgentSessionRuntimeDiagnostic,
+	type AgentSessionServices,
+	type CreateAgentSessionFromServicesOptions,
+	type CreateAgentSessionServicesOptions,
+	createAgentSessionFromServices,
+	createAgentSessionServices,
+} from "./sessionservices.ts";
+export { createSyntheticSourceInfo } from "./sourceinfo.ts";

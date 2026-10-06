@@ -79,11 +79,6 @@ function formatToolCall(
 	};
 
 	switch (toolName) {
-		case "bash": {
-			const command = (args.command as string) || "...";
-			const preview = command.length > 60 ? `${command.slice(0, 60)}...` : command;
-			return themeFg("muted", "$ ") + themeFg("toolOutput", preview);
-		}
 		case "read": {
 			const rawPath = (args.file_path || args.path || "...") as string;
 			const filePath = shortenPath(rawPath);
@@ -96,37 +91,6 @@ function formatToolCall(
 				text += themeFg("warning", `:${startLine}${endLine ? `-${endLine}` : ""}`);
 			}
 			return themeFg("muted", "read ") + text;
-		}
-		case "write": {
-			const rawPath = (args.file_path || args.path || "...") as string;
-			const filePath = shortenPath(rawPath);
-			const content = (args.content || "") as string;
-			const lines = content.split("\n").length;
-			let text = themeFg("muted", "write ") + themeFg("accent", filePath);
-			if (lines > 1) text += themeFg("dim", ` (${lines} lines)`);
-			return text;
-		}
-		case "edit": {
-			const rawPath = (args.file_path || args.path || "...") as string;
-			return themeFg("muted", "edit ") + themeFg("accent", shortenPath(rawPath));
-		}
-		case "ls": {
-			const rawPath = (args.path || ".") as string;
-			return themeFg("muted", "ls ") + themeFg("accent", shortenPath(rawPath));
-		}
-		case "find": {
-			const pattern = (args.pattern || "*") as string;
-			const rawPath = (args.path || ".") as string;
-			return themeFg("muted", "find ") + themeFg("accent", pattern) + themeFg("dim", ` in ${shortenPath(rawPath)}`);
-		}
-		case "grep": {
-			const pattern = (args.pattern || "") as string;
-			const rawPath = (args.path || ".") as string;
-			return (
-				themeFg("muted", "grep ") +
-				themeFg("accent", `/${pattern}/`) +
-				themeFg("dim", ` in ${shortenPath(rawPath)}`)
-			);
 		}
 		default: {
 			const argsStr = JSON.stringify(args);

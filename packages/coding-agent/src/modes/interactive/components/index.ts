@@ -1,38 +1,38 @@
 // UI Components for extensions
 export { ArminComponent } from "./armin.ts";
-export { AssistantMessageComponent } from "./assistant-message.ts";
-export { BashExecutionComponent } from "./bash-execution.ts";
-export { BorderedLoader } from "./bordered-loader.ts";
-export { BranchSummaryMessageComponent } from "./branch-summary-message.ts";
-export { CompactionSummaryMessageComponent } from "./compaction-summary-message.ts";
-export { CustomEditor, type CustomEditorOptions } from "./custom-editor.ts";
-export { CustomMessageComponent } from "./custom-message.ts";
+export { AssistantMessageComponent } from "./assistantmessage.ts";
+export { BashExecutionComponent } from "./bashexecution.ts";
+export { DynamicBorder } from "./border.ts";
+export { BranchSummaryMessageComponent } from "./branchsummary.ts";
+export { CompactionSummaryMessageComponent } from "./compactionsummary.ts";
+export { CustomEditor, type CustomEditorOptions } from "./customeditor.ts";
+export { CustomMessageComponent } from "./custommessage.ts";
 export { DaxnutsComponent } from "./daxnuts.ts";
+export { LoginDialogComponent } from "./dialog.ts";
 export { type RenderDiffOptions, renderDiff } from "./diff.ts";
-export { DynamicBorder } from "./dynamic-border.ts";
-export { ExtensionEditorComponent } from "./extension-editor.ts";
-export { ExtensionInputComponent } from "./extension-input.ts";
-export { ExtensionSelectorComponent } from "./extension-selector.ts";
+export { ExtensionEditorComponent } from "./extensioneditor.ts";
+export { ExtensionInputComponent } from "./extensioninput.ts";
+export { ExtensionSelectorComponent } from "./extensionselector.ts";
+export { FooterComponent } from "./footer.ts";
+export { keyHint, keyText, rawKeyHint } from "./keybindinghints.ts";
+export { BorderedLoader } from "./loader.ts";
+export { ModelSelectorComponent } from "./modelselector.ts";
+export { OAuthSelectorComponent } from "./oauthselector.ts";
+export { type ModelsCallbacks, type ModelsConfig, ScopedModelsSelectorComponent } from "./scopedmodelsselector.ts";
+export { SessionSelectorComponent } from "./sessionselector.ts";
+export { type SettingsCallbacks, type SettingsConfig, SettingsSelectorComponent } from "./settingsselector.ts";
 export {
 	FirstTimeSetupComponent,
 	type FirstTimeSetupOptions,
 	type FirstTimeSetupResult,
-} from "./first-time-setup.ts";
-export { FooterComponent } from "./footer.ts";
-export { keyHint, keyText, rawKeyHint } from "./keybinding-hints.ts";
-export { LoginDialogComponent } from "./login-dialog.ts";
-export { ModelSelectorComponent } from "./model-selector.ts";
-export { OAuthSelectorComponent } from "./oauth-selector.ts";
-export { type ModelsCallbacks, type ModelsConfig, ScopedModelsSelectorComponent } from "./scoped-models-selector.ts";
-export { SessionSelectorComponent } from "./session-selector.ts";
-export { type SettingsCallbacks, type SettingsConfig, SettingsSelectorComponent } from "./settings-selector.ts";
-export { ShowImagesSelectorComponent } from "./show-images-selector.ts";
-export { SkillInvocationMessageComponent } from "./skill-invocation-message.ts";
-export { ThemeSelectorComponent } from "./theme-selector.ts";
-export { ThinkingSelectorComponent } from "./thinking-selector.ts";
-export { ToolExecutionComponent, type ToolExecutionOptions } from "./tool-execution.ts";
-export { TreeSelectorComponent } from "./tree-selector.ts";
-export { TrustSelectorComponent } from "./trust-selector.ts";
-export { UserMessageComponent } from "./user-message.ts";
-export { UserMessageSelectorComponent } from "./user-message-selector.ts";
-export { truncateToVisualLines, type VisualTruncateResult } from "./visual-truncate.ts";
+} from "./setup.ts";
+export { ShowImagesSelectorComponent } from "./showimagesselector.ts";
+export { SkillInvocationMessageComponent } from "./skillinvocation.ts";
+export { ThemeSelectorComponent } from "./themeselector.ts";
+export { ThinkingSelectorComponent } from "./thinkingselector.ts";
+export { ToolExecutionComponent, type ToolExecutionOptions } from "./toolexecution.ts";
+export { TreeSelectorComponent } from "./treeselector.ts";
+export { TrustSelectorComponent } from "./trustselector.ts";
+export { UserMessageComponent } from "./usermessage.ts";
+export { UserMessageSelectorComponent } from "./usermessageselector.ts";
+export { truncateToVisualLines, type VisualTruncateResult } from "./visualtruncate.ts";

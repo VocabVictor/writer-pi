@@ -4,12 +4,12 @@ Example code for the pi-coding-agent SDK, process integration, and extensions.
 
 ## CLI integration
 
-[`rpc-client.ts`](rpc-client.ts) uses the typed `RpcClient` to run Pi in a child process, stream events, and wait for the run to settle.
+[`rpcclient.ts`](rpcclient.ts) uses the typed `RpcClient` to run Pi in a child process, stream events, and wait for the run to settle.
 
 Build the coding-agent package before running it from a repository checkout:
 
 ```bash
-node examples/rpc-client.ts "Explain this repository"
+node examples/rpcclient.ts "Explain this repository"
 ```
 
 ## Directories
@@ -28,12 +28,12 @@ Example extensions demonstrating:
 - External integrations (SSH, file watchers, system theme sync)
 - Custom providers (Anthropic with custom streaming, GitLab Duo)
 
-### [plugins/pi-example-plugin/](plugins/pi-example-plugin/)
+### [plugins/example/](plugins/example/)
 An experimental plugin package that Pi automatically builds into separate Session-worker and TUI Chord facets.
 
 ## Documentation
 
 - [SDK Examples](sdk/README.md)
-- [CLI Integration](../docs/cli-integration.md)
+- [CLI Integration](../docs/cliintegration.md)
 - [Extensions Documentation](../docs/extensions.md)
 - [Skills Documentation](../docs/skills.md)

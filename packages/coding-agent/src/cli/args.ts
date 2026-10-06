@@ -6,7 +6,7 @@ import type { ThinkingLevel } from "@earendil-works/pi-agent-core";
 import chalk from "chalk";
 import { APP_NAME, CONFIG_DIR_NAME, ENV_AGENT_DIR, ENV_SESSION_DIR } from "../config.ts";
 import type { ExtensionFlag } from "../core/extensions/types.ts";
-import type { TuiMode } from "../core/settings-manager.ts";
+import type { TuiMode } from "../core/settingsmanager.ts";
 
 export type Mode = "text" | "json" | "rpc";
 
@@ -269,7 +269,7 @@ export function printHelp(extensionFlags?: ExtensionFlag[]): void {
 					})
 					.join("\n")}\n`
 			: "";
-	console.log(`${chalk.bold(APP_NAME)} - AI coding assistant with read, bash, edit, write tools
+	console.log(`${chalk.bold(APP_NAME)} - AI writing assistant with reading and writing tools
 
 ${chalk.bold("Usage:")}
   ${APP_NAME} [options] [--] [@files...] [messages...]
@@ -331,7 +331,7 @@ ${chalk.bold("Options:")}
   --help, -h                     Show this help
   --version, -v                  Show version number
 
-Extensions can register additional flags (e.g., --plan from plan-mode extension).${extensionFlagsText}
+Extensions can register additional flags.${extensionFlagsText}
 
 ${chalk.bold("Examples:")}
   # Print a provider API key for an external client

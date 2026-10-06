@@ -48,9 +48,15 @@ describe("regression #5109: exclude tools", () => {
 			const allToolNames = toolNames(harness.session.getAllTools());
 			expect(allToolNames).not.toContain("read");
 			expect(allToolNames).not.toContain("ask_question");
-			expect(allToolNames).toContain("bash");
+			expect(allToolNames).toContain("save_draft");
 			expect(allToolNames).toContain("dynamic_tool");
-			expect(harness.session.getActiveToolNames().sort()).toEqual(["bash", "dynamic_tool", "edit", "write"]);
+			expect(harness.session.getActiveToolNames().sort()).toEqual([
+				"diff_versions",
+				"dynamic_tool",
+				"revert_version",
+				"revise_paragraph",
+				"save_draft",
+			]);
 			expect(harness.session.systemPrompt).not.toContain("- read:");
 			expect(harness.session.systemPrompt).not.toContain("ask_question");
 			expect(harness.session.systemPrompt).toContain("- dynamic_tool: Run dynamic test behavior");
@@ -61,17 +67,17 @@ describe("regression #5109: exclude tools", () => {
 
 	it("lets excluded tools override the allowlist", async () => {
 		const harness = await createHarness({
-			allowedToolNames: ["read", "bash", "ask_question"],
+			allowedToolNames: ["read", "save_draft", "ask_question"],
 			excludedToolNames: ["read", "ask_question"],
-			initialActiveToolNames: ["read", "bash", "ask_question"],
+			initialActiveToolNames: ["read", "save_draft", "ask_question"],
 			extensionFactories,
 		});
 		try {
 			await harness.session.bindExtensions({});
 
-			expect(toolNames(harness.session.getAllTools())).toEqual(["bash"]);
-			expect(harness.session.getActiveToolNames()).toEqual(["bash"]);
-			expect(harness.session.systemPrompt).toContain("- bash:");
+			expect(toolNames(harness.session.getAllTools())).toEqual(["save_draft"]);
+			expect(harness.session.getActiveToolNames()).toEqual(["save_draft"]);
+			expect(harness.session.systemPrompt).toContain("- save_draft:");
 			expect(harness.session.systemPrompt).not.toContain("- read:");
 			expect(harness.session.systemPrompt).not.toContain("ask_question");
 		} finally {

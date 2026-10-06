@@ -2,7 +2,7 @@
  * SSH Remote Execution Example
  *
  * Demonstrates delegating tool operations to a remote machine via SSH.
- * When --ssh is provided, read/write/edit/bash run on the remote.
+ * When --ssh is provided, read and user `!` commands run on the remote.
  *
  * Usage:
  *   pi -e ./ssh.ts --ssh user@host
@@ -10,21 +10,11 @@
  *
  * Requirements:
  *   - SSH key-based auth (no password prompts)
- *   - bash on remote
  */
 
 import { spawn } from "node:child_process";
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
-import {
-	type BashOperations,
-	createBashTool,
-	createEditTool,
-	createReadTool,
-	createWriteTool,
-	type EditOperations,
-	type ReadOperations,
-	type WriteOperations,
-} from "@earendil-works/pi-coding-agent";
+import { type BashOperations, createReadTool, type ReadOperations } from "@earendil-works/pi-coding-agent";
 
 function sshExec(remote: string, command: string): Promise<Buffer> {
 	return new Promise((resolve, reject) => {
@@ -59,23 +49,6 @@ function createRemoteReadOps(remote: string, remoteCwd: string, localCwd: string
 			}
 		},
 	};
-}
-
-function createRemoteWriteOps(remote: string, remoteCwd: string, localCwd: string): WriteOperations {
-	const toRemote = (p: string) => p.replace(localCwd, remoteCwd);
-	return {
-		writeFile: async (p, content) => {
-			const b64 = Buffer.from(content).toString("base64");
-			await sshExec(remote, `echo ${JSON.stringify(b64)} | base64 -d > ${JSON.stringify(toRemote(p))}`);
-		},
-		mkdir: (dir) => sshExec(remote, `mkdir -p ${JSON.stringify(toRemote(dir))}`).then(() => {}),
-	};
-}
-
-function createRemoteEditOps(remote: string, remoteCwd: string, localCwd: string): EditOperations {
-	const r = createRemoteReadOps(remote, remoteCwd, localCwd);
-	const w = createRemoteWriteOps(remote, remoteCwd, localCwd);
-	return { readFile: r.readFile, access: r.access, writeFile: w.writeFile };
 }
 
 function createRemoteBashOps(remote: string, remoteCwd: string, localCwd: string): BashOperations {
@@ -116,9 +89,6 @@ export default function (pi: ExtensionAPI) {
 
 	const localCwd = process.cwd();
 	const localRead = createReadTool(localCwd);
-	const localWrite = createWriteTool(localCwd);
-	const localEdit = createEditTool(localCwd);
-	const localBash = createBashTool(localCwd);
 
 	// Resolved lazily on session_start (CLI flags not available during factory)
 	let resolvedSsh: { remote: string; remoteCwd: string } | null = null;
@@ -136,48 +106,6 @@ export default function (pi: ExtensionAPI) {
 				return tool.execute(id, params, signal, onUpdate);
 			}
 			return localRead.execute(id, params, signal, onUpdate);
-		},
-	});
-
-	pi.registerTool({
-		...localWrite,
-		async execute(id, params, signal, onUpdate, _ctx) {
-			const ssh = getSsh();
-			if (ssh) {
-				const tool = createWriteTool(localCwd, {
-					operations: createRemoteWriteOps(ssh.remote, ssh.remoteCwd, localCwd),
-				});
-				return tool.execute(id, params, signal, onUpdate);
-			}
-			return localWrite.execute(id, params, signal, onUpdate);
-		},
-	});
-
-	pi.registerTool({
-		...localEdit,
-		async execute(id, params, signal, onUpdate, _ctx) {
-			const ssh = getSsh();
-			if (ssh) {
-				const tool = createEditTool(localCwd, {
-					operations: createRemoteEditOps(ssh.remote, ssh.remoteCwd, localCwd),
-				});
-				return tool.execute(id, params, signal, onUpdate);
-			}
-			return localEdit.execute(id, params, signal, onUpdate);
-		},
-	});
-
-	pi.registerTool({
-		...localBash,
-		async execute(id, params, signal, onUpdate, _ctx) {
-			const ssh = getSsh();
-			if (ssh) {
-				const tool = createBashTool(localCwd, {
-					operations: createRemoteBashOps(ssh.remote, ssh.remoteCwd, localCwd),
-				});
-				return tool.execute(id, params, signal, onUpdate);
-			}
-			return localBash.execute(id, params, signal, onUpdate);
 		},
 	});
 

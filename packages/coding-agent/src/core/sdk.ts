@@ -4,34 +4,22 @@ import type { ModelsSimpleStreamOptions } from "@earendil-works/pi-ai";
 import { clampThinkingLevel, type Message, type Model, streamSimple } from "@earendil-works/pi-ai/compat";
 import { getAgentDir } from "../config.ts";
 import { resolvePath } from "../utils/paths.ts";
-import { AgentSession } from "./agent-session.ts";
-import { formatNoModelsAvailableMessage } from "./auth-guidance.ts";
-import { CacheWarmer } from "./cache-warmer.ts";
-import { DEFAULT_THINKING_LEVEL } from "./defaults.ts";
+import { formatNoModelsAvailableMessage } from "./authguidance.ts";
+import { CacheWarmer } from "./cachewarmer.ts";
+import { DEFAULT_THINKING_LEVEL, DEFAULT_TOOL_NAMES } from "./defaults.ts";
 import type { ExtensionRunner, LoadExtensionsResult, SessionStartEvent, ToolDefinition } from "./extensions/index.ts";
 import { convertToLlm } from "./messages.ts";
-import { findInitialModel } from "./model-resolver.ts";
-import { ModelRuntime } from "./model-runtime.ts";
-import { mergeProviderAttributionHeaders } from "./provider-attribution.ts";
-import type { ResourceLoader } from "./resource-loader.ts";
-import { DefaultResourceLoader } from "./resource-loader.ts";
-import { getDefaultSessionDir, SessionManager } from "./session-manager.ts";
-import { DEFAULT_TOOL_NAMES, SettingsManager } from "./settings-manager.ts";
+import { findInitialModel } from "./modelresolver.ts";
+import { ModelRuntime } from "./modelruntime.ts";
+import { mergeProviderAttributionHeaders } from "./providerattribution.ts";
+import type { ResourceLoader } from "./resourceloader.ts";
+import { DefaultResourceLoader } from "./resourceloader.ts";
+import { AgentSession } from "./session.ts";
+import { getDefaultSessionDir, SessionManager } from "./sessionmanager.ts";
+import { SettingsManager } from "./settingsmanager.ts";
 import { time } from "./timings.ts";
-import {
-	createBashTool,
-	createCodingTools,
-	createEditTool,
-	createFindTool,
-	createGrepTool,
-	createLsTool,
-	createPowerShellTool,
-	createReadOnlyTools,
-	createReadTool,
-	createWriteTool,
-	withFileMutationQueue,
-} from "./tools/index.ts";
-import { getBranchSelection } from "./virtual-models.ts";
+import { createAllTools, createReadTool, createWriterTools } from "./tools/index.ts";
+import { getBranchSelection } from "./virtualmodels.ts";
 
 // Preserve the pre-0.81 fallback for extensions that construct Agent instances
 // or invoke low-level agent loops without supplying streamFn. Agent core remains
@@ -58,7 +46,7 @@ export interface CreateAgentSessionOptions {
 	 * Optional default tool suppression mode when no explicit allowlist is provided.
 	 *
 	 * - "all": start with no tools enabled
-	 * - "builtin": disable the default built-in tools (read, bash, edit, write)
+	 * - "builtin": disable the default built-in tools (read and the writing tools)
 	 *   but keep extension/custom tools enabled
 	 */
 	noTools?: "all" | "builtin";
@@ -67,7 +55,7 @@ export interface CreateAgentSessionOptions {
 	 *
 	 * When omitted, pi uses the resolved `defaultTools` setting for the initial
 	 * selection when configured. Otherwise it enables the default built-in tools
-	 * (read, bash, edit, write). Extension/custom tools remain enabled unless
+	 * (read and the writing tools). Extension/custom tools remain enabled unless
 	 * `noTools` changes that default. When provided, only the listed tool names are
 	 * enabled.
 	 */
@@ -101,7 +89,6 @@ export interface CreateAgentSessionResult {
 
 // Re-exports
 
-export * from "./agent-session-runtime.ts";
 export type {
 	ExtensionAPI,
 	ExtensionCommandContext,
@@ -112,23 +99,16 @@ export type {
 	SlashCommandSource,
 	ToolDefinition,
 } from "./extensions/index.ts";
-export type { PromptTemplate } from "./prompt-templates.ts";
+export type { PromptTemplate } from "./prompttemplates.ts";
+export * from "./sessionruntime.ts";
 export type { Skill } from "./skills.ts";
 export type { Tool } from "./tools/index.ts";
 
 export {
-	withFileMutationQueue,
 	// Tool factories (for custom cwd)
-	createCodingTools,
-	createReadOnlyTools,
+	createAllTools,
 	createReadTool,
-	createBashTool,
-	createEditTool,
-	createWriteTool,
-	createGrepTool,
-	createFindTool,
-	createLsTool,
-	createPowerShellTool,
+	createWriterTools,
 };
 
 // Helper Functions
@@ -166,7 +146,7 @@ function getDefaultAgentDir(): string {
  * await loader.reload();
  * const { session } = await createAgentSession({
  *   model: myModel,
- *   tools: ["read", "bash"],
+ *   tools: ["read", "save_draft"],
  *   resourceLoader: loader,
  *   sessionManager: SessionManager.inMemory(),
  * });

@@ -1,19 +1,13 @@
 import { defineExtension, type PromptInput, section } from "@earendil-works/pi-durable";
 import { getAgentDir } from "../../config.ts";
-import { loadProjectContextFiles } from "../../core/resource-loader.ts";
-import type { SettingsManager } from "../../core/settings-manager.ts";
+import { loadProjectContextFiles } from "../../core/resourceloader.ts";
+import type { SettingsManager } from "../../core/settingsmanager.ts";
 import { loadSkills, type Skill } from "../../core/skills.ts";
-import { buildSystemPromptSections } from "../../core/system-prompt.ts";
-import { bashToolSystemPromptContribution } from "../../core/tools/bash.ts";
-import { editToolSystemPromptContribution } from "../../core/tools/edit.ts";
+import { buildSystemPromptSections } from "../../core/systemprompt.ts";
 import { readToolSystemPromptContribution } from "../../core/tools/read.ts";
-import { writeToolSystemPromptContribution } from "../../core/tools/write.ts";
 
 const CONTRIBUTIONS = {
 	read: readToolSystemPromptContribution,
-	bash: bashToolSystemPromptContribution,
-	edit: editToolSystemPromptContribution,
-	write: writeToolSystemPromptContribution,
 };
 
 /** pi's section order; `buildSystemPromptSections()` omits the ones without content. */

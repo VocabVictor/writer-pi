@@ -22,7 +22,7 @@ const mocks = vi.hoisted(() => ({
 	platform: vi.fn<() => NodeJS.Platform>(),
 }));
 vi.mock("@earendil-works/pi-tui", () => ({ getNativeClipboard: mocks.getNativeClipboard }));
-vi.mock("../src/utils/clipboard-command.ts", () => ({ runClipboardCommand: mocks.command }));
+vi.mock("../src/utils/clipboardcommand.ts", () => ({ runClipboardCommand: mocks.command }));
 vi.mock("node:os", async () => ({
 	...(await vi.importActual<typeof OsModule>("node:os")),
 	platform: mocks.platform,

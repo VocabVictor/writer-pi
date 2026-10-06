@@ -3,7 +3,7 @@ import { createRequire } from "module";
 import { homedir } from "os";
 import { basename, dirname, join, resolve, sep, win32 } from "path";
 import { fileURLToPath } from "url";
-import { spawnProcessSync } from "./utils/child-process.ts";
+import { spawnProcessSync } from "./utils/childprocess.ts";
 import { normalizePath } from "./utils/paths.ts";
 import { stripBom } from "./utils/text.ts";
 
@@ -402,6 +402,22 @@ export function getPackageDir(): string {
 }
 
 /**
+ * Get this package's compiled entrypoint (dist/index.js), so extension aliases
+ * resolve the package itself without depending on where the running module sits on disk.
+ */
+export function getPackageEntryPath(): string {
+	return join(getPackageDir(), "dist", "index.js");
+}
+
+/**
+ * Get the directory containing this package's workspace siblings (source checkout) or
+ * installed scope root (npm), so extension aliases prefer workspace dist entries when present.
+ */
+export function getWorkspacePackagesRoot(): string {
+	return dirname(getPackageDir());
+}
+
+/**
  * Get path to built-in themes directory (shipped with package)
  * - For Bun binary: theme/ next to executable
  * - For Node.js (dist/): dist/modes/interactive/theme/
@@ -419,17 +435,17 @@ export function getThemesDir(): string {
 
 /**
  * Get path to HTML export template directory (shipped with package)
- * - For Bun binary: export-html/ next to executable
- * - For Node.js (dist/): dist/core/export-html/
- * - For source (src/): src/core/export-html/
+ * - For Bun binary: exporthtml/ next to executable
+ * - For Node.js (dist/): dist/core/exporthtml/
+ * - For source (src/): src/core/exporthtml/
  */
 export function getExportTemplateDir(): string {
 	if (isBunBinary) {
-		return join(getPackageDir(), "export-html");
+		return join(getPackageDir(), "exporthtml");
 	}
 	const packageDir = getPackageDir();
 	const srcOrDist = existsSync(join(packageDir, "src")) ? "src" : "dist";
-	return join(packageDir, srcOrDist, "core", "export-html");
+	return join(packageDir, srcOrDist, "core", "exporthtml");
 }
 
 /** Get path to package.json */
@@ -539,9 +555,10 @@ export const APP_TITLE: string = piConfigName ? APP_NAME : "π";
 export const CONFIG_DIR_NAME: string = pkg.piConfig?.configDir || ".pi";
 export const VERSION: string = pkg.version || "0.0.0";
 
-// e.g., PI_CODING_AGENT_DIR or TAU_CODING_AGENT_DIR
-export const ENV_AGENT_DIR = `${APP_NAME.toUpperCase()}_CODING_AGENT_DIR`;
-export const ENV_SESSION_DIR = `${APP_NAME.toUpperCase()}_CODING_AGENT_SESSION_DIR`;
+// The env prefix stays "pi": piConfig.name is a display name whose hyphen would make the
+// variable impossible to set in a shell, and docs, evals, and scripts all use PI_CODING_AGENT_DIR.
+export const ENV_AGENT_DIR = "PI_CODING_AGENT_DIR";
+export const ENV_SESSION_DIR = "PI_CODING_AGENT_SESSION_DIR";
 
 export function expandTildePath(path: string): string {
 	return normalizePath(path);

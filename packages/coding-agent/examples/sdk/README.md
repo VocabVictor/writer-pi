@@ -8,26 +8,26 @@ The runtime example shows how to build a recreate function that closes over proc
 
 | File | Description |
 |------|-------------|
-| `01-minimal.ts` | Simplest usage with all defaults |
-| `02-custom-model.ts` | Select model and thinking level |
-| `03-custom-prompt.ts` | Replace or modify system prompt |
-| `04-skills.ts` | Discover, filter, or replace skills |
-| `05-tools.ts` | Built-in tool allowlists |
-| `06-extensions.ts` | Logging, blocking, result modification |
-| `07-context-files.ts` | AGENTS.md context files |
-| `08-prompt-templates.ts` | File-based prompt templates |
-| `09-api-keys-and-oauth.ts` | API key resolution, OAuth config |
-| `10-settings.ts` | Override compaction, retry, terminal settings |
-| `11-sessions.ts` | In-memory, persistent, continue, list sessions |
-| `12-full-control.ts` | Replace everything, no discovery |
-| `13-session-runtime.ts` | Manage runtime-backed session replacement |
-| `14-codemode-mcp.ts` | Add the `codemode`, `tool_search`, and MCP extensions |
+| `minimal.ts` | Simplest usage with all defaults |
+| `model.ts` | Select model and thinking level |
+| `prompt.ts` | Replace or modify system prompt |
+| `skills.ts` | Discover, filter, or replace skills |
+| `tools.ts` | Built-in tool allowlists |
+| `extensions.ts` | Logging, blocking, result modification |
+| `context.ts` | AGENTS.md context files |
+| `templates.ts` | File-based prompt templates |
+| `auth.ts` | API key resolution, OAuth config |
+| `settings.ts` | Override compaction, retry, terminal settings |
+| `sessions.ts` | In-memory, persistent, continue, list sessions |
+| `control.ts` | Replace everything, no discovery |
+| `runtime.ts` | Manage runtime-backed session replacement |
+| `codemode.ts` | Add the `codemode`, `tool_search`, and MCP extensions |
 
 ## Running
 
 ```bash
 cd packages/coding-agent
-node examples/sdk/01-minimal.ts
+node examples/sdk/minimal.ts
 ```
 
 ## Quick Reference

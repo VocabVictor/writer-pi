@@ -37,11 +37,11 @@ import type {
 	ExtensionFactory,
 	ToolDefinition,
 } from "../../core/extensions/types.ts";
-import { mcpNamespace } from "../../core/mcp-servers.ts";
-import type { ModelRegistry } from "../../core/model-registry.ts";
-import { openBrowser } from "../../utils/open-browser.ts";
+import { mcpNamespace } from "../../core/mcpservers.ts";
+import type { ModelRegistry } from "../../core/modelregistry.ts";
+import { openBrowser } from "../../utils/openbrowser.ts";
 import { CODEMODE_TOOL_NAME, isCodemodeTool } from "../codemode/tool.ts";
-import { isToolSearchTool, TOOL_SEARCH_TOOL_NAME } from "../tool-search/tool.ts";
+import { isToolSearchTool, TOOL_SEARCH_TOOL_NAME } from "../toolsearch/tool.ts";
 import {
 	getMcpToolExposure,
 	type LoadedMcpConfig,

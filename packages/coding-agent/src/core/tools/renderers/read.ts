@@ -10,13 +10,13 @@ import { basename, dirname, isAbsolute, relative, resolve as resolvePath, sep } 
 import type { ImageContent, TextContent } from "@earendil-works/pi-ai";
 import { Text } from "@earendil-works/pi-tui";
 import { getReadmePath } from "../../../config.ts";
-import { keyHint, keyText } from "../../../modes/interactive/components/keybinding-hints.ts";
+import { keyHint, keyText } from "../../../modes/interactive/components/keybindinghints.ts";
 import { getLanguageFromPath, highlightCode, type Theme } from "../../../modes/interactive/theme/theme.ts";
 import { formatPathRelativeToCwdOrAbsolute } from "../../../utils/paths.ts";
 import type { ToolDefinition, ToolRenderResultOptions } from "../../extensions/types.ts";
-import { resolveToCwd } from "../path-utils.ts";
+import { resolveToCwd } from "../paths.ts";
 import type { ReadToolDetails } from "../read.ts";
-import { getTextOutput, renderToolPath, replaceTabs, str } from "../render-utils.ts";
+import { getTextOutput, renderToolPath, replaceTabs, str } from "../renderutils.ts";
 import { DEFAULT_MAX_BYTES, DEFAULT_MAX_LINES, formatSize } from "../truncate.ts";
 
 interface CompactReadClassification {

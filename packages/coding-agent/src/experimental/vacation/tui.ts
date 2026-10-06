@@ -32,18 +32,18 @@ import {
 } from "@earendil-works/pi-tui";
 import { getAgentDir } from "../../config.ts";
 import { KeybindingsManager } from "../../core/keybindings.ts";
-import type { SettingsManager } from "../../core/settings-manager.ts";
+import type { SettingsManager } from "../../core/settingsmanager.ts";
 import { createAllToolRenderers } from "../../core/tools/renderers/index.ts";
-import { AssistantMessageComponent } from "../../modes/interactive/components/assistant-message.ts";
-import { CustomEditor } from "../../modes/interactive/components/custom-editor.ts";
-import { DynamicBorder } from "../../modes/interactive/components/dynamic-border.ts";
+import { AssistantMessageComponent } from "../../modes/interactive/components/assistantmessage.ts";
+import { DynamicBorder } from "../../modes/interactive/components/border.ts";
+import { CustomEditor } from "../../modes/interactive/components/customeditor.ts";
 import { formatTokens } from "../../modes/interactive/components/footer.ts";
-import { keyText } from "../../modes/interactive/components/keybinding-hints.ts";
-import { type StatusIndicator, WorkingStatusIndicator } from "../../modes/interactive/components/status-indicator.ts";
-import { ToolExecutionComponent, type ToolRenderers } from "../../modes/interactive/components/tool-execution.ts";
-import { UserMessageComponent } from "../../modes/interactive/components/user-message.ts";
+import { keyText } from "../../modes/interactive/components/keybindinghints.ts";
+import { type StatusIndicator, WorkingStatusIndicator } from "../../modes/interactive/components/statusindicator.ts";
+import { ToolExecutionComponent, type ToolRenderers } from "../../modes/interactive/components/toolexecution.ts";
+import { UserMessageComponent } from "../../modes/interactive/components/usermessage.ts";
 import { getEditorTheme, getMarkdownTheme, initTheme, theme } from "../../modes/interactive/theme/theme.ts";
-import { InteractiveThemeController } from "../../modes/interactive/theme/theme-controller.ts";
+import { InteractiveThemeController } from "../../modes/interactive/theme/themecontroller.ts";
 import { agentOf, type DurableController, type DurableView, type DurableViewSource } from "./runtime.ts";
 
 const SELECT_THEME: SelectListTheme = {

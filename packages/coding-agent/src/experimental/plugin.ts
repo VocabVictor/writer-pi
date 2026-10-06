@@ -6,11 +6,11 @@ export {
 	type AgentPromptRequest,
 	type AgentPromptResult,
 	type AgentQueueResponse,
-} from "./services/agent-controller.ts";
-export { type PresentationSelectItem, PresentationUI } from "./services/presentation-ui.ts";
+} from "./services/agentcontroller.ts";
+export { type PresentationSelectItem, PresentationUI } from "./services/presentationui.ts";
 export {
 	type SlashCommandCompletion,
 	type SlashCommandContribution,
 	type SlashCommandRunResult,
 	SlashCommands,
-} from "./services/slash-commands.ts";
+} from "./services/slashcommands.ts";

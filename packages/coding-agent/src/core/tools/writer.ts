@@ -10,7 +10,7 @@ import { getGenreOrFallback } from "../../writer/genres/index.ts";
 import { writerRuntime } from "../../writer/runtime.ts";
 import { diffDrafts, draftPathFor, revertTo } from "../../writer/versions.ts";
 import type { ToolDefinition } from "../extensions/types.ts";
-import { wrapToolDefinition } from "./tool-definition-wrapper.ts";
+import { wrapToolDefinition } from "./wrapper.ts";
 
 const saveDraftSchema = Type.Object({
 	content: Type.String({ description: "完整文稿正文（纯文本，不含代码块围栏与说明文字）" }),

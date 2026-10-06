@@ -4,14 +4,11 @@ import { join } from "node:path";
 import { getModel } from "@earendil-works/pi-ai/compat";
 import { Type } from "typebox";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import {
-	createAgentSessionFromServices,
-	createAgentSessionServices,
-} from "../../../src/core/agent-session-services.ts";
-import { DefaultResourceLoader } from "../../../src/core/resource-loader.ts";
+import { DefaultResourceLoader } from "../../../src/core/resourceloader.ts";
 import { createAgentSession } from "../../../src/core/sdk.ts";
-import { SessionManager } from "../../../src/core/session-manager.ts";
-import { SettingsManager } from "../../../src/core/settings-manager.ts";
+import { SessionManager } from "../../../src/core/sessionmanager.ts";
+import { createAgentSessionFromServices, createAgentSessionServices } from "../../../src/core/sessionservices.ts";
+import { SettingsManager } from "../../../src/core/settingsmanager.ts";
 
 describe("regression #3592: no-builtin-tools keeps extension tools enabled", () => {
 	let tempDir: string;
@@ -78,11 +75,19 @@ describe("regression #3592: no-builtin-tools keeps extension tools enabled", () 
 				.getAllTools()
 				.map((tool) => tool.name)
 				.sort(),
-		).toEqual(["bash", "dynamic_tool", "edit", "find", "grep", "ls", "powershell", "read", "write"]);
+		).toEqual([
+			"diff_versions",
+			"dynamic_tool",
+			"read",
+			"revert_version",
+			"revise_paragraph",
+			"save_draft",
+			"update_context",
+		]);
 		expect(session.getActiveToolNames()).toEqual(["dynamic_tool"]);
 		expect(session.systemPrompt).toContain("- dynamic_tool: Run dynamic test behavior");
 		expect(session.systemPrompt).not.toContain("- read:");
-		expect(session.systemPrompt).not.toContain("- bash:");
+		expect(session.systemPrompt).not.toContain("- save_draft:");
 		session.dispose();
 	});
 

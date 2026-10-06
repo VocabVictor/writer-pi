@@ -5,7 +5,7 @@ import { CONFIG_DIR_NAME, getAgentDir } from "../config.ts";
 import { parseFrontmatter } from "../utils/frontmatter.ts";
 import { canonicalizePath, resolvePath } from "../utils/paths.ts";
 import type { ResourceDiagnostic } from "./diagnostics.ts";
-import { createSyntheticSourceInfo, type SourceInfo } from "./source-info.ts";
+import { createSyntheticSourceInfo, type SourceInfo } from "./sourceinfo.ts";
 
 /** Max name length per spec */
 const MAX_NAME_LENGTH = 64;
@@ -352,7 +352,7 @@ function loadSkillFromFile(
  * Skills with disableModelInvocation=true are excluded from the prompt
  * (they can only be invoked explicitly via /skill:name commands).
  */
-export function formatSkillsForPrompt(skills: Skill[], fileReadTool: "read" | "bash" = "read"): string {
+export function formatSkillsForPrompt(skills: Skill[]): string {
 	const visibleSkills = skills.filter((s) => !s.disableModelInvocation);
 
 	if (visibleSkills.length === 0) {
@@ -361,9 +361,7 @@ export function formatSkillsForPrompt(skills: Skill[], fileReadTool: "read" | "b
 
 	const lines = [
 		"\n\nThe following skills provide specialized instructions for specific tasks.",
-		fileReadTool === "read"
-			? "Use the read tool to load a skill's file when the task matches its description."
-			: "Use bash to load a skill's file when the task matches its description.",
+		"Use the read tool to load a skill's file when the task matches its description.",
 		"When a skill file references a relative path, resolve it against the skill directory (parent of SKILL.md / dirname of the path) and use that absolute path in tool commands.",
 		"",
 		"<available_skills>",

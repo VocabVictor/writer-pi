@@ -10,9 +10,9 @@ import { join } from "node:path";
 import { createInterface } from "node:readline/promises";
 import chalk from "chalk";
 import { APP_NAME, CONFIG_DIR_NAME } from "../../config.ts";
-import { validateMcpServerConfig } from "../../core/mcp-servers.ts";
-import { ProjectTrustStore } from "../../core/trust-manager.ts";
-import { openBrowser } from "../../utils/open-browser.ts";
+import { validateMcpServerConfig } from "../../core/mcpservers.ts";
+import { ProjectTrustStore } from "../../core/trustmanager.ts";
+import { openBrowser } from "../../utils/openbrowser.ts";
 import {
 	addMcpServerConfig,
 	getMcpToolExposure,

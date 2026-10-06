@@ -16,9 +16,16 @@ import {
 } from "@earendil-works/pi-server";
 import { createUnixServer, getUnixSocketPath } from "@earendil-works/pi-server/unix";
 import lockfile from "proper-lockfile";
-import type { AuthInput } from "../cli/experimental/command-options.ts";
+import type { AuthInput } from "../cli/experimental/commandoptions.ts";
 import { getAgentDir } from "../config.ts";
 import { resolvePath } from "../utils/paths.ts";
+import {
+	createSession as createCatalogSession,
+	deleteSession,
+	listSessions as listCatalogSessions,
+	readSession,
+	type SessionCatalogMetadata,
+} from "./catalog.ts";
 import { CoordinatorConnection, type CoordinatorStartupLease, ensureCoordinator } from "./coordinator.ts";
 import { createPresentationFacetData } from "./plugins/bundled.ts";
 import {
@@ -35,18 +42,11 @@ import {
 	spawnInternalProcess,
 	terminateInternalProcess,
 } from "./process.ts";
-import { RadiusRelayAuthResolver } from "./radius-auth.ts";
-import { RadiusRelayHost, type RadiusRelayHostStatus } from "./radius-relay.ts";
+import { RadiusRelayAuthResolver } from "./radiusauth.ts";
+import { RadiusRelayHost, type RadiusRelayHostStatus } from "./radiusrelay.ts";
 import { createExperimentalServerServices } from "./services/server.ts";
 import type { SessionCreateOptions, SessionSummary } from "./services/sessions.ts";
-import {
-	createSession as createCatalogSession,
-	deleteSession,
-	listSessions as listCatalogSessions,
-	readSession,
-	type SessionCatalogMetadata,
-} from "./session-catalog.ts";
-import { SessionPluginSelectionConflictError, SessionWorkerManager } from "./session-worker-manager.ts";
+import { SessionPluginSelectionConflictError, SessionWorkerManager } from "./workermanager.ts";
 
 export const ENV_SERVER_DIR = "PI_SERVER_DIR";
 export const ENV_SERVER_ID = "PI_SERVER_ID";

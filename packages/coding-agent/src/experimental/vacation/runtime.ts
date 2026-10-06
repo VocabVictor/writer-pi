@@ -15,15 +15,10 @@ import {
 	type TaskGraph,
 } from "@earendil-works/pi-durable";
 import { openNodeSqliteStorage } from "@earendil-works/pi-durable/storage/sqlite/node";
-import { ModelRuntime } from "../../core/model-runtime.ts";
-import { SettingsManager } from "../../core/settings-manager.ts";
-import {
-	configureHarnessHttp,
-	createHarnessSettings,
-	createVacationRegistry,
-	findInitialAgentModel,
-} from "./harness-setup.ts";
+import { ModelRuntime } from "../../core/modelruntime.ts";
+import { SettingsManager } from "../../core/settingsmanager.ts";
 import { selectSession } from "./sessions.ts";
+import { configureHarnessHttp, createHarnessSettings, createVacationRegistry, findInitialAgentModel } from "./setup.ts";
 import { Vacation } from "./vacation.ts";
 
 const context = BACKGROUND_CONTEXT;

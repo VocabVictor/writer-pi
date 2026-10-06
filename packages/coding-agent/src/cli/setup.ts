@@ -1,5 +1,5 @@
 import { APP_NAME } from "../config.ts";
-import { configureHttpDispatcher } from "../core/http-dispatcher.ts";
+import { configureHttpDispatcher } from "../core/httpdispatcher.ts";
 
 export function setupCli(): void {
 	process.title = APP_NAME;

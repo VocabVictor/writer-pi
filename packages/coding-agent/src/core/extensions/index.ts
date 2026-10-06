@@ -2,8 +2,8 @@
  * Extension system for lifecycle events and custom tools.
  */
 
-export type { SlashCommandInfo, SlashCommandSource } from "../slash-commands.ts";
-export type { SourceInfo } from "../source-info.ts";
+export type { SlashCommandInfo, SlashCommandSource } from "../slashcommands.ts";
+export type { SourceInfo } from "../sourceinfo.ts";
 export {
 	createExtensionRuntime,
 	discoverAndLoadExtensions,
@@ -35,8 +35,6 @@ export type {
 	AppKeybinding,
 	AutocompleteProviderFactory,
 	// Events - Tool (ToolCallEvent types)
-	BashToolCallEvent,
-	BashToolResultEvent,
 	BeforeAgentStartEvent,
 	BeforeAgentStartEventResult,
 	BeforeProviderHeadersEvent,
@@ -63,8 +61,6 @@ export type {
 	CustomToolCallEvent,
 	CustomToolResultEvent,
 	EditorFactory,
-	EditToolCallEvent,
-	EditToolResultEvent,
 	// Message and Entry Rendering
 	EntryRenderer,
 	EntryRenderOptions,
@@ -94,14 +90,10 @@ export type {
 	ExtensionUIDialogOptions,
 	ExtensionVirtualModel,
 	ExtensionWidgetOptions,
-	FindToolCallEvent,
-	FindToolResultEvent,
 	GetActiveToolsHandler,
 	GetAllToolsHandler,
 	GetCommandsHandler,
 	GetThinkingLevelHandler,
-	GrepToolCallEvent,
-	GrepToolResultEvent,
 	InlineExtension,
 	// Events - Input
 	InputEvent,
@@ -109,8 +101,6 @@ export type {
 	InputSource,
 	KeybindingsManager,
 	LoadExtensionsResult,
-	LsToolCallEvent,
-	LsToolResultEvent,
 	MarkdownTransformContext,
 	MarkdownTransformer,
 	McpServersChangeEvent,
@@ -124,8 +114,6 @@ export type {
 	ModelSelectEvent,
 	ModelSelectSource,
 	NormalizedBuildSystemPromptOptions,
-	PowerShellToolCallEvent,
-	PowerShellToolResultEvent,
 	ProjectTrustContext,
 	ProjectTrustEvent,
 	ProjectTrustEventDecision,
@@ -202,20 +190,7 @@ export type {
 	UserBashEventResult,
 	WidgetPlacement,
 	WorkingIndicatorOptions,
-	WriteToolCallEvent,
-	WriteToolResultEvent,
 } from "./types.ts";
 // Type guards
-export {
-	defineTool,
-	isBashToolResult,
-	isEditToolResult,
-	isFindToolResult,
-	isGrepToolResult,
-	isLsToolResult,
-	isPowerShellToolResult,
-	isReadToolResult,
-	isToolCallEventType,
-	isWriteToolResult,
-} from "./types.ts";
+export { defineTool, isReadToolResult, isToolCallEventType } from "./types.ts";
 export { wrapRegisteredTool, wrapRegisteredTools } from "./wrapper.ts";

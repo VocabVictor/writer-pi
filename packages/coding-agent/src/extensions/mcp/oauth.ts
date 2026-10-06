@@ -12,7 +12,7 @@
 import { createHash } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { join } from "node:path";
-import { oauthErrorHtml, oauthSuccessHtml } from "@earendil-works/pi-ai/utils/oauth-page";
+import { oauthErrorHtml, oauthSuccessHtml } from "@earendil-works/pi-ai/utils/oauthpage";
 import type { AuthProvider, McpFetch } from "@earendil-works/pi-mcp";
 import {
 	authorizeMcp,
@@ -30,8 +30,8 @@ import {
 } from "@earendil-works/pi-mcp/oauth";
 import lockfile from "proper-lockfile";
 import { APP_NAME, getAgentDir } from "../../config.ts";
-import { type AuthStorageBackend, FileAuthStorageBackend } from "../../core/auth-storage.ts";
-import { mcpNamespace } from "../../core/mcp-servers.ts";
+import { type AuthStorageBackend, FileAuthStorageBackend } from "../../core/authstorage.ts";
+import { mcpNamespace } from "../../core/mcpservers.ts";
 
 const CALLBACK_HOST = "127.0.0.1";
 const CALLBACK_PATH = "/callback";

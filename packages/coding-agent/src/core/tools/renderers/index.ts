@@ -2,43 +2,22 @@
  * Built-in tool renderers, without the tools themselves.
  *
  * A presentation displays tool calls and results; it does not execute them and does not need their
- * typebox parameter schemas. Importing this instead of `core/tools/index.ts` keeps ~17 MB of module
+ * typebox parameter schemas. Importing this instead of `core/tools/index.ts` keeps the tool module
  * graph out of a process that only renders.
  */
 
 import type { ToolDefinition } from "../../extensions/types.ts";
 import type { ToolName } from "../index.ts";
-import { createShellRenderers } from "./bash.ts";
-import { editRenderers } from "./edit.ts";
-import { findRenderers } from "./find.ts";
-import { grepRenderers } from "./grep.ts";
-import { lsRenderers } from "./ls.ts";
 import { readRenderers } from "./read.ts";
-import { writeRenderers } from "./write.ts";
 
 export type ToolRenderers = Pick<ToolDefinition<any, any>, "renderCall" | "renderResult">;
 
-export {
-	createShellRenderers,
-	editRenderers,
-	findRenderers,
-	grepRenderers,
-	lsRenderers,
-	readRenderers,
-	writeRenderers,
-};
+export { readRenderers };
 
-/** Renderers for every built-in tool, keyed by tool name. */
+/** Renderers for every built-in tool, keyed by tool name. Writing tools use the default shell. */
 export function createAllToolRenderers(): Record<ToolName, ToolRenderers> {
 	return {
 		read: readRenderers,
-		bash: createShellRenderers("$"),
-		powershell: createShellRenderers("PS>"),
-		edit: editRenderers,
-		write: writeRenderers,
-		grep: grepRenderers,
-		find: findRenderers,
-		ls: lsRenderers,
 		save_draft: {},
 		revise_paragraph: {},
 		diff_versions: {},

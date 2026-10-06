@@ -4,9 +4,9 @@ import type { ClientCommand } from "../cli/experimental/commands/client.ts";
 import type { ServerCommand } from "../cli/experimental/commands/server.ts";
 import { areExperimentalFeaturesEnabled } from "../core/experimental.ts";
 import { runClient } from "./client.ts";
-import { runClientTui } from "./client-tui.ts";
-import type { RadiusRelayHostStatus } from "./radius-relay.ts";
+import type { RadiusRelayHostStatus } from "./radiusrelay.ts";
 import { startForegroundServer } from "./server.ts";
+import { runClientTui } from "./tui.ts";
 
 async function runServerCommand(command: ServerCommand): Promise<void> {
 	let previousRelayStatus = "";

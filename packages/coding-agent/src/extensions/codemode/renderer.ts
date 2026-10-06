@@ -9,9 +9,9 @@
 
 import { Container, Spacer, Text } from "@earendil-works/pi-tui";
 import type { ToolDefinition } from "../../core/extensions/types.ts";
-import { getTextOutput, replaceTabs, str } from "../../core/tools/render-utils.ts";
-import { keyHint } from "../../modes/interactive/components/keybinding-hints.ts";
-import { VisualLinePreview } from "../../modes/interactive/components/visual-truncate.ts";
+import { getTextOutput, replaceTabs, str } from "../../core/tools/renderutils.ts";
+import { keyHint } from "../../modes/interactive/components/keybindinghints.ts";
+import { VisualLinePreview } from "../../modes/interactive/components/visualtruncate.ts";
 import { highlightCode, type Theme } from "../../modes/interactive/theme/theme.ts";
 import type { CodemodeNestedCall, CodemodeToolDetails } from "./tool.ts";
 

@@ -24,22 +24,22 @@ import {
 } from "@earendil-works/pi-tui";
 import chalk from "chalk";
 import { getCustomThemesDir, getThemesDir } from "../../../config.ts";
-import type { SourceInfo } from "../../../core/source-info.ts";
-import { closeWatcher, watchWithErrorHandler } from "../../../utils/fs-watch.ts";
-import { highlight, supportsLanguage } from "../../../utils/syntax-highlight.ts";
+import type { SourceInfo } from "../../../core/sourceinfo.ts";
+import { highlight, supportsLanguage } from "../../../utils/syntaxhighlight.ts";
 import { stripBom } from "../../../utils/text.ts";
-import { generateSystemThemeColors, SYSTEM_THEME_NAME, terminalAppearance } from "./system-theme.ts";
+import { closeWatcher, watchWithErrorHandler } from "../../../utils/watch.ts";
+import { generateSystemThemeColors, SYSTEM_THEME_NAME, terminalAppearance } from "./systemtheme.ts";
 
-export { SYSTEM_THEME_NAME } from "./system-theme.ts";
+export { SYSTEM_THEME_NAME } from "./systemtheme.ts";
 
 // ============================================================================
 // Types & Schema
 // ============================================================================
 
-/** The schema that validates this shape lives in `theme-json.ts`; importing the type is free. */
-import type { ThemeColorValue as ColorValue, ValidatedThemeJson as ThemeJson } from "./theme-json.ts";
+/** The schema that validates this shape lives in `themejson.ts`; importing the type is free. */
+import type { ThemeColorValue as ColorValue, ValidatedThemeJson as ThemeJson } from "./themejson.ts";
 
-export type { ValidatedThemeJson as ThemeJson } from "./theme-json.ts";
+export type { ValidatedThemeJson as ThemeJson } from "./themejson.ts";
 
 export type ThemeJsonValidator = (label: string, json: unknown) => ThemeJson;
 

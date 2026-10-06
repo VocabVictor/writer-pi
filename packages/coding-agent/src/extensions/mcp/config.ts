@@ -32,7 +32,7 @@ import {
 	type McpServerConfig,
 	mcpNamespace,
 	validateMcpServerConfig,
-} from "../../core/mcp-servers.ts";
+} from "../../core/mcpservers.ts";
 
 export type {
 	McpExposure,
@@ -40,8 +40,8 @@ export type {
 	McpOAuthConfig,
 	McpServerConfig,
 	McpStdioServerConfig,
-} from "../../core/mcp-servers.ts";
-export { getMcpToolExposure } from "../../core/mcp-servers.ts";
+} from "../../core/mcpservers.ts";
+export { getMcpToolExposure } from "../../core/mcpservers.ts";
 
 export interface McpServerEntry {
 	name: string;

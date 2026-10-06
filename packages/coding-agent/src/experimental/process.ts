@@ -49,7 +49,7 @@ export function spawnInternalProcess(
 	const entryUrl = defaultEntryUrl(role, options.entryUrl);
 	// --import takes a module specifier; a raw path breaks on Windows drives and on `#`, `?`, or `%` in the path.
 	const sourceRuntimeArgs = import.meta.url.endsWith(".ts")
-		? ["--import", new URL("source-resolver.ts", import.meta.url).href]
+		? ["--import", new URL("sourceresolver.ts", import.meta.url).href]
 		: [];
 	const child = spawn(
 		process.execPath,
@@ -84,17 +84,17 @@ export async function terminateInternalProcess(child: ChildProcess): Promise<voi
 function defaultEntryUrl(role: InternalProcessRole, override: URL | undefined): URL {
 	if (override) return override;
 	if (isBundledNode) {
-		const entry = role === "coordinator" ? "coordinator.js" : "cli.js";
+		const entry = role === "coordinator" ? "entry.js" : "cli.js";
 		return pathToFileURL(join(getPackageDir(), "dist", "bundle", entry));
 	}
 	const javaScript = import.meta.url.endsWith(".js");
 	if (role === "coordinator") {
-		return new URL(javaScript ? "coordinator.js" : "coordinator.ts", import.meta.url);
+		return new URL(javaScript ? "entry.js" : "entry.ts", import.meta.url);
 	}
 	if (role === "server") {
 		return new URL(javaScript ? "server.js" : "server.ts", import.meta.url);
 	}
-	return new URL(javaScript ? "session-worker.js" : "session-worker.ts", import.meta.url);
+	return new URL(javaScript ? "session-worker.js" : "worker.ts", import.meta.url);
 }
 
 export const MAX_CONTROL_LINE_BYTES = 128 * 1024 * 1024;

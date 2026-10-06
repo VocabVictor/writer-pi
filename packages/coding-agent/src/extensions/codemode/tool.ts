@@ -41,9 +41,9 @@ import type {
 	ToolLoadoutChanges,
 	ToolNamespace,
 } from "../../core/extensions/types.ts";
-import type { ModelRegistry } from "../../core/model-registry.ts";
-import type { CodemodeMode } from "../../core/settings-manager.ts";
-import { wrapToolDefinition } from "../../core/tools/tool-definition-wrapper.ts";
+import type { ModelRegistry } from "../../core/modelregistry.ts";
+import type { CodemodeMode } from "../../core/settingsmanager.ts";
+import { wrapToolDefinition } from "../../core/tools/wrapper.ts";
 import { loadCodemodeExecutor } from "./execute.lazy.ts";
 import { codemodeRenderers } from "./renderer.ts";
 

@@ -3,7 +3,7 @@ import { unlinkSync, writeFileSync } from "node:fs";
 import { platform, tmpdir } from "node:os";
 import { join } from "node:path";
 import { getNativeClipboard } from "@earendil-works/pi-tui";
-import { runClipboardCommand } from "./clipboard-command.ts";
+import { runClipboardCommand } from "./clipboardcommand.ts";
 import { isWSL } from "./wsl.ts";
 
 const MAX_OSC52_ENCODED_LENGTH = 100_000;

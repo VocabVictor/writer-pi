@@ -13,13 +13,13 @@ import {
 } from "@earendil-works/chord";
 import { BACKGROUND_CONTEXT } from "@earendil-works/chord/context";
 import type { Conversation, Harness } from "@earendil-works/pi-durable";
-import type { ModelRuntime } from "../../core/model-runtime.ts";
-import type { SettingsManager } from "../../core/settings-manager.ts";
-import { AgentController } from "./agent-controller.ts";
-import { createAgentController } from "./agent-controller-provider.ts";
-import { createModelsServiceFacet } from "./models-provider.ts";
+import type { ModelRuntime } from "../../core/modelruntime.ts";
+import type { SettingsManager } from "../../core/settingsmanager.ts";
+import { AgentController } from "./agentcontroller.ts";
+import { createAgentController } from "./agentcontrollerprovider.ts";
+import { createModelsServiceFacet } from "./modelsprovider.ts";
 import { SessionPlugins } from "./plugins.ts";
-import { createTranscriptServiceFacet } from "./transcript-provider.ts";
+import { createTranscriptServiceFacet } from "./transcriptprovider.ts";
 
 export interface SessionWorkerRuntime {
 	readonly harness: Harness;

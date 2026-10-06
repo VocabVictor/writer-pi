@@ -1,7 +1,7 @@
 import { Marked, type Token } from "@earendil-works/pi-tui";
 import { type MermaidArt, render, type Span } from "grok-mermaid";
 import type { MarkdownTransformer } from "../../../core/extensions/types.ts";
-import type { MermaidRenderingMode } from "../../../core/settings-manager.ts";
+import type { MermaidRenderingMode } from "../../../core/settingsmanager.ts";
 import type { Theme } from "../theme/theme.ts";
 
 const markdownParser = new Marked();

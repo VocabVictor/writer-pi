@@ -26,10 +26,10 @@ import {
 import { Container, Spacer, Text } from "@earendil-works/pi-tui";
 import type { TSchema } from "typebox";
 import type { ToolAnnotations, ToolDefinition, ToolExposure, ToolNamespace } from "../../core/extensions/types.ts";
-import { formatToolCallWithArgs, getTextOutput, replaceTabs } from "../../core/tools/render-utils.ts";
+import { formatToolCallWithArgs, getTextOutput, replaceTabs } from "../../core/tools/renderutils.ts";
 import { formatSize, truncateMiddle } from "../../core/tools/truncate.ts";
-import { keyHint } from "../../modes/interactive/components/keybinding-hints.ts";
-import { VisualLinePreview } from "../../modes/interactive/components/visual-truncate.ts";
+import { keyHint } from "../../modes/interactive/components/keybindinghints.ts";
+import { VisualLinePreview } from "../../modes/interactive/components/visualtruncate.ts";
 import type { McpExposure } from "./config.ts";
 
 /**

@@ -32,8 +32,8 @@ import {
 	type SessionEntry,
 	type SessionProjection,
 	sessionEntryToContextMessages,
-} from "../session-manager.ts";
-import { combineUsage } from "../usage-totals.ts";
+} from "../sessionmanager.ts";
+import { combineUsage } from "../usagetotals.ts";
 import {
 	computeFileLists,
 	createFileOps,

@@ -1,4 +1,4 @@
-import { createInMemoryModelRegistry, createModelRegistry, getModelRuntime } from "../model-runtime-test-utils.ts";
+import { createInMemoryModelRegistry, createModelRegistry, getModelRuntime } from "../runtimeutils.ts";
 /**
  * Local test harness for the new coding-agent test suite.
  */
@@ -16,13 +16,13 @@ import type {
 	ToolResultMessage,
 } from "@earendil-works/pi-ai/compat";
 import { registerFauxProvider, streamSimple } from "@earendil-works/pi-ai/compat";
-import { AgentSession, type AgentSessionEvent } from "../../src/core/agent-session.ts";
-import { AuthStorage } from "../../src/core/auth-storage.ts";
+import { AuthStorage } from "../../src/core/authstorage.ts";
 import type { ExtensionRunner, ExtensionUIContext } from "../../src/core/extensions/index.ts";
 import { convertToLlm } from "../../src/core/messages.ts";
-import { SessionManager } from "../../src/core/session-manager.ts";
-import type { Settings } from "../../src/core/settings-manager.ts";
-import { SettingsManager } from "../../src/core/settings-manager.ts";
+import { AgentSession, type AgentSessionEvent } from "../../src/core/session.ts";
+import { SessionManager } from "../../src/core/sessionmanager.ts";
+import type { Settings } from "../../src/core/settingsmanager.ts";
+import { SettingsManager } from "../../src/core/settingsmanager.ts";
 import type { InlineExtension, ResourceLoader } from "../../src/index.ts";
 import { theme } from "../../src/modes/interactive/theme/theme.ts";
 import {
