@@ -94,9 +94,9 @@ function sources() {
 			"../src/delta/tracker.ts",
 			"../src/delta/draft.ts",
 			"../src/delta/diff.ts",
-			"../src/delta/revision-validator.ts",
-			"../src/delta/apply-immutable-trusted.ts",
-			"./delta-traversal.bench.ts",
+			"../src/delta/validator.ts",
+			"../src/delta/immutable.ts",
+			"./traversal.bench.ts",
 		].map((path) => [
 			path,
 			createHash("sha256")

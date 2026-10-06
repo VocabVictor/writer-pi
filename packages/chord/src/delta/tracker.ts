@@ -1,7 +1,7 @@
 import { copyJson } from "../json.ts";
 import type { JsonValue } from "../types.ts";
-import { applyImmutableTrusted } from "./apply-immutable-trusted.ts";
 import type { Draft } from "./draft.ts";
+import { applyImmutableTrusted } from "./immutable.ts";
 import { applyImmutable, type NonEmptyPath, type Op, overlap, type Path, RESERVED_SEGMENTS } from "./index.ts";
 
 export type { Draft, JsonValue, Op };

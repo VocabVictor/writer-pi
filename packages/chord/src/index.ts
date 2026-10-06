@@ -13,6 +13,12 @@ export {
 export type { Draft } from "./delta/index.ts";
 export { type CopyJsonOptions, copyJson, isJsonValue } from "./json.ts";
 export {
+	createServiceStateDecoder,
+	createServiceStateEncoder,
+	type ServiceStateDecoder,
+	type ServiceStateEncoder,
+} from "./services/codec.ts";
+export {
 	isRemoteServiceErrorCode,
 	REMOTE_SERVICE_ERROR_CODES,
 	RemoteServiceError,
@@ -24,12 +30,6 @@ export {
 	RemoteServiceProvider,
 	type ServiceUpdatePublisher,
 } from "./services/provider.ts";
-export {
-	createServiceStateDecoder,
-	createServiceStateEncoder,
-	type ServiceStateDecoder,
-	type ServiceStateEncoder,
-} from "./services/state-codec.ts";
 export {
 	createServiceCatalogueCall,
 	createServiceSubscribeCall,

@@ -14,7 +14,7 @@ import {
 	replicatedState,
 	type ServiceProviderUpdate,
 } from "../src/index.ts";
-import { getReplicatedStateInternals } from "../src/services/state-internals.ts";
+import { getReplicatedStateInternals } from "../src/services/internals.ts";
 
 interface Counter {
 	readonly state: ReplicatedState<{ value: number }>;

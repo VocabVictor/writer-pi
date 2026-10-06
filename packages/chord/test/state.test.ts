@@ -9,8 +9,8 @@ import {
 	type ReplicatedStateSourceFrame,
 	replicatedState,
 } from "../src/index.ts";
+import { getReplicatedStateInternals } from "../src/services/internals.ts";
 import { ReplicatedStateReplica } from "../src/services/state.ts";
-import { getReplicatedStateInternals } from "../src/services/state-internals.ts";
 
 describe("transactional replicated state", () => {
 	it("publishes one immutable structurally shared revision", () => {

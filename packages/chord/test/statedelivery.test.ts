@@ -7,8 +7,8 @@ import {
 	type ReplicatedStateSourceFrame,
 	replicatedState,
 } from "../src/index.ts";
+import { getReplicatedStateInternals } from "../src/services/internals.ts";
 import { ReplicatedStateReplica } from "../src/services/state.ts";
-import { getReplicatedStateInternals } from "../src/services/state-internals.ts";
 
 type Value = { value: number };
 type Kind = "mutable" | "attached" | "replica";

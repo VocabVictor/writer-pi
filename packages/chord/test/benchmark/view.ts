@@ -233,7 +233,7 @@ const commits = optionNumber("commits", quick ? 120 : 1_000);
 const trials = optionNumber("trials", quick ? 1 : 3);
 const queueOperationCapacity = quick ? 64 : 256;
 const root = fileURLToPath(new URL("../../../..", import.meta.url));
-const worker = fileURLToPath(new URL("./conversation-view-benchmark.worker.ts", import.meta.url));
+const worker = fileURLToPath(new URL("./view.worker.ts", import.meta.url));
 const results: Result[] = [];
 const failures: Failure[] = [];
 

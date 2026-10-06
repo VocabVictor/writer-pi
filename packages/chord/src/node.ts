@@ -2,13 +2,13 @@ export type {
 	FacetBundleArtifactLoaderOptions,
 	FacetBundleExternalResolver,
 	FacetBundleLoaderOptions,
-} from "./node/bundle-loader.ts";
+} from "./node/loader.ts";
 export {
 	createFacetBundleArtifactLoader,
 	createFacetBundleLoader,
 	readFacetBundleArtifact,
 	readFacetBundleManifest,
-} from "./node/bundle-loader.ts";
+} from "./node/loader.ts";
 export type {
 	FacetBundleArtifact,
 	FacetBundleEntry,

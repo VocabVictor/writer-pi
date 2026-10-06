@@ -1,6 +1,6 @@
 import { BACKGROUND_CONTEXT } from "../context/index.ts";
 import { applyImmutable, isBase, type Op, type Prepared, type Tracker, track } from "../delta/index.ts";
-import { JsonRevisionValidator } from "../delta/revision-validator.ts";
+import { JsonRevisionValidator } from "../delta/validator.ts";
 import type {
 	AttachedReplicatedState,
 	Context,
@@ -13,7 +13,7 @@ import type {
 	ReplicatedStateSourceFrame,
 	ReplicatedStateSourceOptions,
 } from "../types.ts";
-import { registerReplicatedStateInternals } from "./state-internals.ts";
+import { registerReplicatedStateInternals } from "./internals.ts";
 
 /** The void signature also accepts synchronous callbacks that return an ignored value. */
 type StateListener<T> = (value: T, context: Context, delivery: ReplicatedStateDelivery) => void;

@@ -14,8 +14,8 @@ import type {
 	ServiceSubscriptionSnapshot,
 } from "../types.ts";
 import { RemoteServiceError } from "./errors.ts";
+import { getReplicatedStateInternals, type ReplicatedStateInternals } from "./internals.ts";
 import { serviceDeliveryContext } from "./state.ts";
-import { getReplicatedStateInternals, type ReplicatedStateInternals } from "./state-internals.ts";
 import { decodeServiceControlCall } from "./wire.ts";
 
 type RemoteMethod = (...args: unknown[]) => unknown;
