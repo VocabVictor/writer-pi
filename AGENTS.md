@@ -19,6 +19,8 @@
 - Inline single-line helpers that have only one call site.
 - Keep code files under 300 lines; do not proactively refactor existing files that exceed it.
 - No procedural explanations in comments; state why in one sentence.
+- Fix problems at the root; do not mask them with patches (e.g. renaming to silence a linter instead of completing the design).
+- Keep file names short and simple; no pinyin and no long underscore-joined names.
 - Check node_modules for external API types; don't guess.
 - **No inline imports** (`await import()`, `import("pkg").Type`, dynamic type imports). Top-level imports only.
 - In `packages/coding-agent`, resolve package assets through helpers in `src/config.ts`. Do not use `__dirname` directly; the helpers account for source checkouts, npm installations, and standalone binaries.
