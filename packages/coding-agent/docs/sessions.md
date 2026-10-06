@@ -31,11 +31,11 @@ In `/tree`, select a user message to put its text back in the editor. Edit and s
 
 When you leave a branch, Pi can summarize it and attach that summary to the branch you enter. This preserves relevant work from the abandoned path without including every message from it.
 
-For the persisted tree and entry types, see [Session Format](session-format.md).
+For the persisted tree and entry types, see [Session Format](sessionformat.md).
 
 ## Manage conversation context
 
-The model receives the active branch, not every branch in the session file. Pi combines that history with the system prompt, discovered context files, available tools, and loaded skill descriptions. [How Pi Works](how-pi-works.md#context) describes how those inputs are assembled.
+The model receives the active branch, not every branch in the session file. Pi combines that history with the system prompt, discovered context files, available tools, and loaded skill descriptions. [How Pi Works](howpiworks.md#context) describes how those inputs are assembled.
 
 The footer shows current context usage. When the active context approaches the model's limit, Pi normally compacts older history automatically. Compaction adds a summary and keeps recent messages. It does not delete the original session entries.
 

@@ -13,7 +13,7 @@
         },
         {
           "title": "How Pi Works",
-          "path": "how-pi-works.md"
+          "path": "howpiworks.md"
         }
       ]
     },
@@ -45,15 +45,15 @@
             },
             {
               "title": "Run Local Models",
-              "path": "llama-cpp.md"
+              "path": "llamacpp.md"
             },
             {
               "title": "Configure Your Terminal",
-              "path": "terminal-setup.md"
+              "path": "terminalsetup.md"
             },
             {
               "title": "Configure Shell Commands",
-              "path": "shell-aliases.md"
+              "path": "shellaliases.md"
             },
             {
               "title": "Run Pi in tmux",
@@ -78,7 +78,7 @@
             },
             {
               "title": "Create Prompt Templates",
-              "path": "prompt-templates.md"
+              "path": "prompttemplates.md"
             },
             {
               "title": "Add Skills",
@@ -107,11 +107,11 @@
             },
             {
               "title": "Add Custom Providers",
-              "path": "custom-provider.md"
+              "path": "customprovider.md"
             },
             {
               "title": "Route with Virtual Models",
-              "path": "virtual-models.md"
+              "path": "virtualmodels.md"
             },
             {
               "title": "Build Terminal UI Components",
@@ -119,7 +119,7 @@
             },
             {
               "title": "Integrate with the CLI",
-              "path": "cli-integration.md"
+              "path": "cliintegration.md"
             },
             {
               "title": "Use the SDK",
@@ -142,7 +142,7 @@
         },
         {
           "title": "Slash Commands",
-          "path": "slash-commands.md"
+          "path": "slashcommands.md"
         },
         {
           "title": "Settings",
@@ -150,7 +150,7 @@
         },
         {
           "title": "Environment Variables",
-          "path": "environment-variables.md"
+          "path": "environmentvariables.md"
         },
         {
           "title": "Keybindings",
@@ -162,7 +162,7 @@
         },
         {
           "title": "Session File Format",
-          "path": "session-format.md"
+          "path": "sessionformat.md"
         },
         {
           "title": "Compaction and Branch Summaries",
@@ -178,15 +178,15 @@
         },
         {
           "title": "RPC Commands",
-          "path": "rpc-commands.md"
+          "path": "rpccommands.md"
         },
         {
           "title": "RPC Extension UI",
-          "path": "rpc-extension-ui.md"
+          "path": "rpcextensionui.md"
         },
         {
           "title": "Message Types",
-          "path": "message-types.md"
+          "path": "messagetypes.md"
         }
       ]
     }
@@ -198,7 +198,7 @@
     },
     {
       "from": "session.md",
-      "to": "session-format.md"
+      "to": "sessionformat.md"
     },
     {
       "from": "tree.md",
@@ -206,7 +206,7 @@
     },
     {
       "from": "process-integration.md",
-      "to": "cli-integration.md"
+      "to": "cliintegration.md"
     }
   ]
 }

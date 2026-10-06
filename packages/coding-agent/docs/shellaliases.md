@@ -8,10 +8,8 @@ Use `shellPath` to choose the Bash executable and `shellCommandPrefix` to run se
 
 | Command source | Shell |
 |---|---|
-| Model calls the built-in `bash` tool | Pi's resolved Bash executable |
-| You enter `!command` or `!!command` | The same resolved Bash executable |
-| Model calls the optional `powershell` tool | PowerShell 7 (`pwsh.exe`) or Windows PowerShell |
-| An extension provides or replaces a shell tool | The operations implemented by that extension |
+| You enter `!command` or `!!command` | Pi's resolved Bash executable |
+| An extension provides a shell tool | The operations implemented by that extension |
 
 Pi normally invokes Bash with `bash -c`. On Unix systems, it uses `/bin/bash`, then `bash` on `PATH`, and finally `sh` when Bash is unavailable. Native Windows first checks the configured path, then Git Bash, then `bash.exe` on `PATH`.
 
@@ -37,7 +35,7 @@ Run `/reload` after changing the setting. See [Run Pi on Windows](windows.md) fo
 
 ## Run setup before every Bash command
 
-Set `shellCommandPrefix` to prepend shell setup to both the built-in `bash` tool and user-entered `!` or `!!` commands:
+Set `shellCommandPrefix` to prepend shell setup to user-entered `!` and `!!` commands:
 
 ```json
 {
@@ -80,7 +78,7 @@ Aliases must use Bash-compatible syntax. Do not source an arbitrary `.zshrc` int
 
 ### The prefix works for `!` but not for an extension tool
 
-`shellCommandPrefix` configures Pi's built-in Bash execution. An extension that replaces the `bash` tool or provides its own shell operations controls its own setup. Check that extension's documentation.
+`shellCommandPrefix` configures Pi's built-in Bash execution. An extension that provides its own shell operations controls its own setup. Check that extension's documentation.
 
 ### `shopt` is not found
 

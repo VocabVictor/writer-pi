@@ -68,6 +68,19 @@ Anthropic also recognizes `ANTHROPIC_OAUTH_TOKEN` as an API credential and `ANTH
 
 With no key or token set, Anthropic uses workload identity federation when `ANTHROPIC_FEDERATION_RULE_ID`, `ANTHROPIC_ORGANIZATION_ID` and `ANTHROPIC_IDENTITY_TOKEN_FILE` are set: the Anthropic SDK exchanges the identity token for a short-lived access token and refreshes it itself (re-reading the identity token file, so keep that file fresh for long sessions). `ANTHROPIC_SERVICE_ACCOUNT_ID` and `ANTHROPIC_WORKSPACE_ID` are passed through when set.
 
+## Local default model
+
+writer-pi ships a built-in default provider, `free-glm`, pointed at the self-hosted GLM vLLM endpoint. It speaks the Anthropic Messages API and needs no real authentication, so a fresh install with no credentials starts with the model `glm-5.3-flash` at `http://10.0.0.126:21517`. The model is text-only and supports reasoning.
+
+Two environment variables override the built-in defaults:
+
+| Variable | Description |
+|----------|-------------|
+| `FREE_GLM_BASE_URL` | Endpoint base URL; default `http://10.0.0.126:21517` |
+| `FREE_GLM_MODEL` | Model ID; default `glm-5.3-flash` |
+
+The built-in default applies only when nothing else selects a model. A `--model` or `--models` argument, a stored `auth.json` credential, a `defaultProvider` and `defaultModel` setting, and providers you configured yourself through `models.json` or `/login` all take precedence over it, as does the model saved in a resumed session. Ambient API-key environment variables rank below it. See [Select a model](models.md#select-a-model).
+
 ## Load an API key from a command
 
 To use a secret manager without writing the resolved key to disk, set a provider's `key` in `auth.json` to a command prefixed with `!`:

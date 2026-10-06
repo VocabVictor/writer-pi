@@ -16,6 +16,23 @@ Extensions, prompt templates, and skills can add commands. The command menu in P
 | `/logout` | Remove provider authentication |
 | `/llama` | Manage models on the configured llama.cpp router |
 
+## Writing
+
+These commands run the writing flow: drafting, checking, and revision against the drafts in the working folder.
+
+| Command | Description |
+|---|---|
+| `/draft <request>` | Start the writing flow and draft a full document; `--genre=<genre>` and `--voice=<file\|sample>` select the dimensions |
+| `/continue <request>` | Continue or rework the current project |
+| `/outline <request>` | Outline a long document, then generate its sections |
+| `/revise [path] <request>` | Revise an existing document from the project |
+| `/voice [file]` | Draft with a voice sample; defaults to `sample` |
+| `/writing` | Show project status: stage, genre, voice, drafts, materials, and locked sentences |
+| `/drafts` | List saved draft versions |
+| `/diff [from] [to]` | Show the line-level difference between two draft versions; no arguments compares the two most recent |
+| `/revert <version>` | Switch back to an earlier version; its content is saved as a new version and all history files are kept |
+| `/genre [id]` | Show the available genres or switch the current one, persisted for the next `/draft`, `/continue`, `/outline`, or `/revise` |
+
 ## Sessions and context
 
 | Command | Description |
@@ -57,4 +74,4 @@ Review a session before exporting or sharing it. Sessions can contain prompts, t
 - Each prompt template is available under its template name.
 - Skills are available as `/skill:name` when skill commands are enabled.
 
-Use `/reload` after adding or changing a discovered command resource. See [Extensions](extensions.md), [Prompt Templates](prompt-templates.md), and [Skills](skills.md) for their loading and naming rules.
+Use `/reload` after adding or changing a discovered command resource. See [Extensions](extensions.md), [Prompt Templates](prompttemplates.md), and [Skills](skills.md) for their loading and naming rules.

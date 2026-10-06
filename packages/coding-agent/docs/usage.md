@@ -4,7 +4,7 @@ Run `pi` from the folder you want to work in. Pi uses that folder to discover fi
 
 Pi may ask whether you trust the working folder before loading its project resources. See [Project trust](security.md#understand-project-trust).
 
-<p align="center"><img src="images/interactive-mode.png" alt="Pi interactive mode showing a conversation, editor, and status information" width="750"></p>
+<p align="center"><img src="images/interactivemode.png" alt="Pi interactive mode showing a conversation, editor, and status information" width="750"></p>
 
 The transcript shows your prompts, Pi's responses, tool calls, results, and errors. You write prompts and commands in the editor. The footer shows the current folder, session, model, context usage, and accumulated usage and cost.
 
@@ -39,7 +39,7 @@ You can send more input while Pi is working:
 
 A message sent with `Enter` waits until the current response and its tool calls finish, then guides the next response. A follow-up sent with `Alt+Enter` waits until Pi finishes the current task. Aborting returns queued messages to the editor.
 
-Windows Terminal reserves some Alt shortcuts. See [Terminal Setup](terminal-setup.md) for the Windows alternatives.
+Windows Terminal reserves some Alt shortcuts. See [Terminal Setup](terminalsetup.md) for the Windows alternatives.
 
 ## Change the model or settings
 
@@ -50,7 +50,7 @@ Type `/` to search the available commands. The commands you will use most often 
 - `/login` and `/logout` manage provider access.
 - `/settings` changes common preferences.
 
-Prompt templates, skills, and extensions can add more commands to the same menu. See [Choose a Model](models.md), [Configuration](configuration.md), or the complete [Slash Commands reference](slash-commands.md).
+Prompt templates, skills, and extensions can add more commands to the same menu. See [Choose a Model](models.md), [Configuration](configuration.md), or the complete [Slash Commands reference](slashcommands.md).
 
 ## Continue or start over
 
@@ -85,7 +85,7 @@ Use `/share` to upload the session and get a viewer link. With Radius authentica
 
 Fullscreen mode, the default, keeps the editor and status area fixed while the transcript scrolls within the terminal window. Regular mode uses the terminal's normal scrollback. Choose a mode through `/settings` or `--tui-mode`.
 
-Terminal support for mouse input, keyboard shortcuts, and inline images varies. See [Terminal Setup](terminal-setup.md) for platform-specific configuration and [Keybindings](keybindings.md) for every configurable shortcut. Run `/hotkeys` to inspect the shortcuts active in your current session.
+Terminal support for mouse input, keyboard shortcuts, and inline images varies. See [Terminal Setup](terminalsetup.md) for platform-specific configuration and [Keybindings](keybindings.md) for every configurable shortcut. Run `/hotkeys` to inspect the shortcuts active in your current session.
 
 ## Collect diagnostic information
 

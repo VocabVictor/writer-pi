@@ -71,13 +71,13 @@ Extension dialogs form a request-response subprotocol. Other extension UI update
 
 For Node.js or TypeScript integrations, prefer `RpcClient` from `@earendil-works/pi-coding-agent`. It starts a Pi RPC child process, correlates requests, exposes typed command methods, and delivers session events to listeners.
 
-The [RPC client example](../examples/rpc-client.ts) sends one prompt, streams text and tool activity, waits for `agent_settled`, and shuts down the child process. It is included in the repository’s TypeScript checks.
+The [RPC client example](../examples/rpcclient.ts) sends one prompt, streams text and tool activity, waits for `agent_settled`, and shuts down the child process. It is included in the repository’s TypeScript checks.
 
 `RpcClient.promptAndWait()` installs its event listener before sending the prompt, avoiding a race with fast completions. For separate operations, subscribe before calling `prompt()` and call `waitForIdle()` only while a run is active.
 
 The client requires a path to a runnable Pi CLI. The repository example points at `dist/cli.js`, so the package must be built before that example runs from a checkout.
 
-If you are building a client without `RpcClient`, start with [RPC Protocol](rpc.md), then use [RPC Commands](rpc-commands.md) and [JSON Event Stream](json.md) as the wire references.
+If you are building a client without `RpcClient`, start with [RPC Protocol](rpc.md), then use [RPC Commands](rpccommands.md) and [JSON Event Stream](json.md) as the wire references.
 
 ## Fork and rebrand Pi
 
@@ -96,11 +96,11 @@ Change the top-level `bin` field to set the executable name. These settings affe
 
 ## Examples and references
 
-- [RPC client](../examples/rpc-client.ts): typed Node.js integration
-- [RPC extension UI](../examples/rpc-extension-ui.ts): custom terminal client with extension dialogs
+- [RPC client](../examples/rpcclient.ts): typed Node.js integration
+- [RPC extension UI](../examples/rpcextensionui.ts): custom terminal client with extension dialogs
 - [Command Line](cli.md): startup options and mode selection
 - [JSON Event Stream](json.md): JSON event reference
 - [RPC Protocol](rpc.md): RPC lifecycle, framing, errors, and shutdown
-- [RPC Commands](rpc-commands.md): command and response reference
-- [RPC Extension UI](rpc-extension-ui.md): extension interaction subprotocol
+- [RPC Commands](rpccommands.md): command and response reference
+- [RPC Extension UI](rpcextensionui.md): extension interaction subprotocol
 - [SDK examples](../examples/sdk/): in-process TypeScript integrations

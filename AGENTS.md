@@ -1,5 +1,9 @@
 # Development Rules
 
+## Product
+
+writer-pi is a writing agent: writing is the product, not a feature. Sessions carry the reading and writing tools only (`read`, `save_draft`, `revise_paragraph`, `diff_versions`, `revert_version`) — no shell or file-editing coding tools. Do not reintroduce coding-agent features into the writing product.
+
 ## Conversational Style
 
 - Keep answers short and concise
@@ -20,7 +24,7 @@
 - Keep code files under 300 lines; do not proactively refactor existing files that exceed it.
 - No procedural explanations in comments; state why in one sentence.
 - Fix problems at the root; do not mask them with patches (e.g. renaming to silence a linter instead of completing the design).
-- Keep file names short and simple; no pinyin and no long underscore-joined names.
+- File and folder names: one word preferred, no `-` or `_` separators, no leading digits, no pinyin, and never add `bak`/`v2`/`vx`/`fixed`-style suffixes when improving a file. New files follow this; do not proactively rename existing files.
 - Check node_modules for external API types; don't guess.
 - **No inline imports** (`await import()`, `import("pkg").Type`, dynamic type imports). Top-level imports only.
 - In `packages/coding-agent`, resolve package assets through helpers in `src/config.ts`. Do not use `__dirname` directly; the helpers account for source checkouts, npm installations, and standalone binaries.
@@ -29,7 +33,7 @@
 - Always ask before removing functionality or code that appears intentional.
 - Do not preserve backward compatibility unless the user asks for it.
 - Never hardcode key checks (e.g. `matchesKey(keyData, "ctrl+x")`). Add defaults to `DEFAULT_EDITOR_KEYBINDINGS` or `DEFAULT_APP_KEYBINDINGS` so they stay configurable.
-- Never modify `packages/ai/src/models.generated.ts` directly; update `packages/ai/scripts/generate-models.ts` instead, then regenerate. Including the resulting `models.generated.ts` diff is always OK, even if regeneration includes unrelated upstream model metadata changes.
+- Never modify `packages/ai/src/models.generated.ts` directly; update `packages/ai/scripts/models.ts` instead, then regenerate. Including the resulting `models.generated.ts` diff is always OK, even if regeneration includes unrelated upstream model metadata changes.
 
 ## Commands
 
@@ -50,7 +54,7 @@
 - When updating `undici`, you MUST read its changelog/release notes for the target version and evaluate whether any changes may affect functionality before applying the update.
 - Hydrate/update locally with `npm install --ignore-scripts`; clean/CI-style with `npm ci --ignore-scripts`. Don't run lifecycle scripts unless the user asks.
 - If dep metadata changes, refresh `package-lock.json` with `npm install --package-lock-only --ignore-scripts`.
-- If `packages/coding-agent/npm-shrinkwrap.json` needs regen, run `node scripts/generate-coding-agent-shrinkwrap.mjs` (verify with `--check` or `npm run check`). New deps with lifecycle scripts require review and an explicit allowlist entry in that script; never add one silently.
+- If `packages/coding-agent/npm-shrinkwrap.json` needs regen, run `node scripts/shrinkwrap.mjs` (verify with `--check` or `npm run check`). New deps with lifecycle scripts require review and an explicit allowlist entry in that script; never add one silently.
 - Pre-commit blocks lockfile commits unless `PI_ALLOW_LOCKFILE_CHANGE=1`. Don't bypass unless the user wants the lockfile change committed.
 
 ## Git
@@ -63,7 +67,8 @@ Committing:
 - Stage explicit paths (`git add <path1> <path2>`); never `git add -A` / `git add .`.
 - Before committing, run `git status` and verify you are only staging your files.
 - `packages/ai/src/models.generated.ts` may always be included alongside your files.
-- Message format: `{feat,fix,docs}[(ai,tui,agent,coding-agent)]: <commit message> (optionally multiple lines)`. Message is informative and concise.
+- Message format: `writer-pi: <commit message> (optionally multiple lines)`. Message is informative and concise.
+- Commits carry no AI attribution: no `Co-Authored-By` or other trailers naming Claude or any AI; the author stays the user's git identity.
 
 Never run (destroys other agents' work or bypasses checks):
 
@@ -77,7 +82,7 @@ If rebase conflicts occur:
 
 ## Issues and PRs
 
-See `CONTRIBUTING.md` for the contributor gate (auto-close workflows, `lgtm`/`lgtmi`, quality bar).
+See `CONTRIBUTING.md` for the issue quality bar.
 
 When reviewing PRs:
 
@@ -87,7 +92,7 @@ When reviewing PRs:
 
 When creating issues:
 
-- Add `pkg:*` labels for affected packages (`pkg:agent`, `pkg:ai`, `pkg:coding-agent`, `pkg:tui`); use all that apply.
+- Add `pkg:*` labels for affected packages (`pkg:agent`, `pkg:ai`, `pkg:chord`, `pkg:client`, `pkg:codemode`, `pkg:coding-agent`, `pkg:durable`, `pkg:evals`, `pkg:mcp`, `pkg:protocol`, `pkg:server`, `pkg:telemetry`, `pkg:tui`); use all that apply.
 
 When posting issue/PR comments:
 
@@ -117,8 +122,8 @@ Rules:
 
 Attribution:
 
-- Internal (from issues): `Fixed foo bar ([#123](https://github.com/earendil-works/pi/issues/123))`
-- External contributions: `Added feature X ([#456](https://github.com/earendil-works/pi/pull/456) by [@username](https://github.com/username))`
+- Internal (from issues): `Fixed foo bar ([#123](https://github.com/VocabVictor/writer-pi/issues/123))`
+- External contributions: `Added feature X ([#456](https://github.com/VocabVictor/writer-pi/pull/456) by [@username](https://github.com/username))`
 
 ## Releasing
 

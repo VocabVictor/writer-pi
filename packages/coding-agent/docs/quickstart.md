@@ -37,7 +37,7 @@ pi
 
 The working folder helps Pi discover relevant files, instructions, and configuration. Pi also uses it to group saved sessions.
 
-<p align="center"><img src="images/interactive-mode.png" alt="Pi running in a terminal with a conversation, input editor, and status footer" width="750"></p>
+<p align="center"><img src="images/interactivemode.png" alt="Pi running in a terminal with a conversation, input editor, and status footer" width="750"></p>
 
 The interface shows your conversation, an editor for prompts and commands, and a footer with the current folder, model, and session status. See [Use Pi in the terminal](usage.md) to learn how to add files, run commands, direct ongoing work, and manage results.
 
@@ -57,7 +57,7 @@ See [Choose a model and provider](models.md) for supported providers, environmen
 
 ## 4. Give Pi a task
 
-Pi shows each file read, search, command, and edit it performs. It does not ask before every tool call.
+Pi shows each tool call it performs, such as reading a file or saving a draft. It does not ask before every tool call.
 
 Enter a task that matches your work, for example:
 
@@ -98,11 +98,11 @@ Start with the least powerful mechanism that meets your need:
 | Need | Start with |
 |---|---|
 | Give Pi persistent instructions for a folder | [`AGENTS.md`](configuration.md#context-files) |
-| Reuse a prompt from the `/` menu | [Prompt template](prompt-templates.md) |
+| Reuse a prompt from the `/` menu | [Prompt template](prompttemplates.md) |
 | Add task-specific instructions and supporting files | [Skill](skills.md) |
 | Add executable tools, commands, or event handlers | [Extension](extensions.md) |
 | Build a custom terminal component | [Terminal UI](tui.md) |
-| Connect an unsupported model service | [Custom provider](custom-provider.md) |
+| Connect an unsupported model service | [Custom provider](customprovider.md) |
 | Install or distribute several resources | [Pi package](packages.md) |
 
 ## Uninstall Pi

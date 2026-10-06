@@ -8,7 +8,7 @@ pi --mode json "Review this repository"
 
 Pi writes one session header followed by session events, then exits after the supplied prompts finish. RPC mode emits the same session-event shapes but has no session header because it is a bidirectional, long-lived protocol. See [RPC Mode](rpc.md).
 
-This page is the canonical reference for events shared by JSON and RPC mode. Message values use the [shared message types](message-types.md).
+This page is the canonical reference for events shared by JSON and RPC mode. Message values use the [shared message types](messagetypes.md).
 
 ## Framing and process I/O
 
@@ -20,13 +20,13 @@ Read stdout continuously. A reader that stops consuming records can stall Pi whe
 
 ## Session header
 
-The first JSON-mode record is the current [session header](session-format.md#sessionheader):
+The first JSON-mode record is the current [session header](sessionformat.md#sessionheader):
 
 ```json
 {"type":"session","version":3,"id":"uuid","timestamp":"2024-12-03T14:00:00.000Z","cwd":"/path"}
 ```
 
-RPC mode does not emit this record. Use [`get_state`](rpc-commands.md#get_state) for its current session ID and file.
+RPC mode does not emit this record. Use [`get_state`](rpccommands.md#get_state) for its current session ID and file.
 
 ## Event sequence
 
@@ -109,9 +109,9 @@ The top-level `usage` is the latest cumulative provider-reported usage for the a
 Use `toolCallId` to correlate the lifecycle. `partialResult` is the latest partial result supplied by the tool. Whether it replaces or extends an earlier update depends on that tool's result contract.
 
 ```json
-{"type":"tool_execution_start","toolCallId":"call_abc123","toolName":"bash","args":{"command":"ls -la"}}
-{"type":"tool_execution_update","toolCallId":"call_abc123","toolName":"bash","args":{"command":"ls -la"},"partialResult":{"content":[{"type":"text","text":"partial output"}],"details":{}}}
-{"type":"tool_execution_end","toolCallId":"call_abc123","toolName":"bash","result":{"content":[{"type":"text","text":"complete output"}],"details":{}},"isError":false}
+{"type":"tool_execution_start","toolCallId":"call_abc123","toolName":"save_draft","args":{"content":"..."}}
+{"type":"tool_execution_update","toolCallId":"call_abc123","toolName":"save_draft","args":{"content":"..."},"partialResult":{"content":[{"type":"text","text":"partial output"}],"details":{}}}
+{"type":"tool_execution_end","toolCallId":"call_abc123","toolName":"save_draft","result":{"content":[{"type":"text","text":"complete output"}],"details":{}},"isError":false}
 ```
 
 ## Queue and state events
@@ -123,7 +123,7 @@ Use `toolCallId` to correlate the lifecycle. `partialResult` is the latest parti
 | `session_info_changed` | `name` | The session display name changed. An absent `name` means it was cleared. |
 | `thinking_level_changed` | `level` | The active thinking level changed. |
 
-The `entry` value uses a persisted [session entry type](session-format.md#entry-types).
+The `entry` value uses a persisted [session entry type](sessionformat.md#entry-types).
 
 ## Compaction events
 
@@ -181,7 +181,7 @@ For a branch summary, `source` is `"branchSummary"` and `reason` is absent. The 
 
 ## RPC-only events
 
-A direct RPC [`bash`](rpc-commands.md#bash) command emits one `bash_execution_update` for each output chunk. Its optional `id` matches the command ID. The final command response can contain truncated output, but these events stream all output:
+A direct RPC [`bash`](rpccommands.md#bash) command emits one `bash_execution_update` for each output chunk. Its optional `id` matches the command ID. The final command response can contain truncated output, but these events stream all output:
 
 ```json
 {"type":"bash_execution_update","id":"req-1","delta":"total 48\n"}
@@ -193,7 +193,7 @@ RPC also adds `extension_error` when an extension handler throws:
 {"type":"extension_error","extensionPath":"/path/to/extension.ts","event":"tool_call","error":"Error message"}
 ```
 
-Extension UI records are a separate RPC subprotocol, not `AgentSessionEvent` values. See [RPC Extension UI](rpc-extension-ui.md).
+Extension UI records are a separate RPC subprotocol, not `AgentSessionEvent` values. See [RPC Extension UI](rpcextensionui.md).
 
 ## TypeScript types
 

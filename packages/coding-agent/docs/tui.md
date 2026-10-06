@@ -73,7 +73,7 @@ Treat each custom component instance as belonging to one interaction. Create a n
 
 Finish the interaction with the completion callback supplied to the component factory. It resolves the `ctx.ui.custom()` promise and disposes the component. Do not call `OverlayHandle.hide()` on an overlay created by `ctx.ui.custom()`.
 
-See [`overlay-qa-tests.ts`](../examples/extensions/overlay-qa-tests.ts) for positioning, stacking, focus, responsive visibility, and animation behavior.
+See [`qa.ts`](../examples/extensions/qa.ts) for positioning, stacking, focus, responsive visibility, and animation behavior.
 
 ## Apply themes correctly
 
@@ -117,9 +117,9 @@ The checked extension examples cover the main patterns:
 
 - [`preset.ts`](../examples/extensions/preset.ts) and [`tools.ts`](../examples/extensions/tools.ts) use selection and settings lists.
 - [`qna.ts`](../examples/extensions/qna.ts) uses cancellable asynchronous UI.
-- [`modal-editor.ts`](../examples/extensions/modal-editor.ts) replaces the editor.
-- [`custom-footer.ts`](../examples/extensions/custom-footer.ts) replaces the footer.
-- [`widget-placement.ts`](../examples/extensions/widget-placement.ts) places persistent content around the editor.
-- [`doom-overlay/`](../examples/extensions/doom-overlay/) demonstrates a continuously rendered overlay.
+- [`modal.ts`](../examples/extensions/modal.ts) replaces the editor.
+- [`footer.ts`](../examples/extensions/footer.ts) replaces the footer.
+- [`placement.ts`](../examples/extensions/placement.ts) places persistent content around the editor.
+- [`doom/`](../examples/extensions/doom/) demonstrates a continuously rendered overlay.
 
 The public exports are defined in [`packages/tui/src/index.ts`](https://github.com/earendil-works/pi/blob/main/packages/tui/src/index.ts). See [Extensions](extensions.md) for extension lifecycle, state, tools, events, and mode behavior.

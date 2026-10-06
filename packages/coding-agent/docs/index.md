@@ -14,7 +14,7 @@ If Pi is already installed, choose what you want to do:
 - [Choose a model](models.md) or connect a subscription, API key, local model, or compatible endpoint.
 - [Continue or branch a session](sessions.md) to resume work or explore another approach without losing history.
 - [Configure Pi](configuration.md) for your preferences, working folders, instructions, and reusable resources.
-- [Understand how Pi works](how-pi-works.md), including tools, context, sessions, and the agent loop.
+- [Understand how Pi works](howpiworks.md), including tools, context, sessions, and the agent loop.
 
 ## Customize Pi
 
@@ -30,9 +30,9 @@ Use the [Quickstart customization chooser](quickstart.md#choose-how-to-customize
 
 ## Find reference and setup information
 
-Use the reference pages to look up [CLI options](cli.md), [settings](settings.md), [providers](providers.md), [keybindings](keybindings.md), and [environment variables](environment-variables.md).
+Use the reference pages to look up [CLI options](cli.md), [settings](settings.md), [providers](providers.md), [keybindings](keybindings.md), and [environment variables](environmentvariables.md).
 
-For platform-specific help, see [Terminal Setup](terminal-setup.md), [Windows](windows.md), [tmux](tmux.md), [Termux on Android](termux.md), or [Containerization](containerization.md).
+For platform-specific help, see [Terminal Setup](terminalsetup.md), [Windows](windows.md), [tmux](tmux.md), [Termux on Android](termux.md), or [Containerization](containerization.md).
 
 ## Work safely
 

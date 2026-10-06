@@ -38,7 +38,7 @@ A session records model and thinking-level changes. Resuming the session restore
 
 Pi integrates directly with the llama.cpp router. The router discovers GGUF files and loads models on demand. Pi's `/llama` command manages the router, while `/model` selects one of its loaded models.
 
-Follow [Local Models with llama.cpp](llama-cpp.md) for server startup, model layout, downloads, and connection troubleshooting.
+Follow [Local Models with llama.cpp](llamacpp.md) for server startup, model layout, downloads, and connection troubleshooting.
 
 For Ollama, LM Studio, vLLM, SGLang, and other compatible servers, [configure a compatible endpoint](#configure-a-compatible-endpoint) in `models.json`.
 
@@ -112,7 +112,7 @@ Classifier models do not chat. They answer typed questions about JSON state: pic
 | `vercel-ai-gateway` | `typesafe-ai/jev` | `AI_GATEWAY_API_KEY` |
 | `opencode` | `jev-1.13`, `jev-1.13-free` | `OPENCODE_API_KEY` |
 
-Chat models on a [llama.cpp router](llama-cpp.md#classification) are also listed as classifier models.
+Chat models on a [llama.cpp router](llamacpp.md#classification) are also listed as classifier models.
 
 Classifier models do not appear in `/model`. The model reaches them through the [`codemode`](cli.md#enable-codemode) tool, which is off unless an MCP server turned it on. Enable it with `"defaultTools": ["+codemode"]` in [settings](settings.md#tools). Scripts then list classifier models with `models.getAvailableOfType("classifier")` and call `models.classify(model, { state, questions })`:
 
@@ -135,7 +135,7 @@ return result.answers;
 
 When the service reports token counts, as all System One services do, `result.usage` carries them with their cost. Pi adds the usage of a script's classifier calls to the `codemode` tool result, so it counts toward the session cost in the footer and `/session`. The cost uses the model's catalog price; models without one, such as TypeSafe's direct `jev-latest`, report tokens at no cost.
 
-Extensions call classifiers through `ctx.modelRegistry.classify()`, without codemode. [Virtual models](virtual-models.md#route-requests) can use them to route requests; see the `jev-router.ts` example.
+Extensions call classifiers through `ctx.modelRegistry.classify()`, without codemode. [Virtual models](virtualmodels.md#route-requests) can use them to route requests; see the `router.ts` example.
 
 ## Use image models
 
@@ -158,7 +158,7 @@ Extensions generate images through `ctx.modelRegistry.generateImages()`, without
 
 ## Add a custom provider
 
-Use an extension when the provider needs custom streaming, model discovery, or authentication behavior. See [Custom Providers](custom-provider.md) for the extension workflow.
+Use an extension when the provider needs custom streaming, model discovery, or authentication behavior. See [Custom Providers](customprovider.md) for the extension workflow.
 
 ## Troubleshooting
 

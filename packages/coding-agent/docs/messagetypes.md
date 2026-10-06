@@ -2,7 +2,7 @@
 
 Pi uses `AgentMessage` values in SDK state, lifecycle events, RPC responses, and persisted session message entries. This page defines those shared messages and their content blocks.
 
-Message timestamps are Unix timestamps in milliseconds. They are different from the ISO 8601 timestamps on [session entries](session-format.md#entry-base).
+Message timestamps are Unix timestamps in milliseconds. They are different from the ISO 8601 timestamps on [session entries](sessionformat.md#entry-base).
 
 Source definitions:
 
@@ -181,7 +181,7 @@ The coding-agent package extends `AgentMessage` with four roles.
 
 ### BashExecutionMessage
 
-Created by direct shell commands, including the RPC [`bash`](rpc-commands.md#bash) command. It is not an LLM tool result.
+Created by direct shell commands, including the RPC [`bash`](rpccommands.md#bash) command. It is not an LLM tool result.
 
 ```typescript
 interface BashExecutionMessage {

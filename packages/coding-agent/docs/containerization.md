@@ -2,7 +2,7 @@
 
 Use an isolated environment to limit the files, credentials, processes, and network services that generated commands can access or affect.
 
-You can isolate the complete Pi process or keep Pi on the host and route selected tools into an isolated environment.
+All of the methods below isolate the complete Pi process.
 
 ## Choose an isolation method
 
@@ -11,9 +11,8 @@ You can isolate the complete Pi process or keep Pi on the host and route selecte
 | Plain Docker | Container | Pi, built-in tools, `!` commands, and extensions | Credentials passed into the container | A straightforward local container boundary |
 | Docker Sandboxes | Managed sandbox | Pi, built-in tools, `!` commands, and extensions | Provider credentials remain on the host and are substituted by the proxy | Managed local isolation without exposing the real provider key |
 | OpenShell | Local or remote sandbox | Pi, built-in tools, `!` commands, and extensions | Policy-controlled credentials and inference routing | Filesystem, process, network, and credential policies |
-| Gondolin extension | Host | Built-in tools and `!` commands | Stored Pi credentials remain on the host, but commands inherit host environment variables | A local micro-VM for tool execution while retaining the host interface |
 
-The method changes where extensions run. When the complete Pi process runs inside an isolated environment, its extensions run there too. When host Pi delegates built-in tools through Gondolin, other extension tools still run on the host unless they also delegate their work.
+When the complete Pi process runs inside an isolated environment, its extensions run there too.
 
 ## Decide what Pi can access
 
@@ -23,7 +22,6 @@ An isolated process can still affect resources you expose to it:
 - Mounting `~/.pi/agent` exposes your Pi credentials, settings, extensions, and sessions.
 - Environment variables passed into a container are available to processes inside it.
 - Network access may allow code or tool output to leave the environment.
-- Tool-only isolation does not constrain the host Pi process or extension tools that do not use the isolated backend.
 
 Expose only the working folder, credentials, and network destinations needed for the task. Use read-only mounts or copy files into and out of the environment when you do not want writes to affect the host.
 
@@ -149,35 +147,3 @@ openshell sandbox download pi-sandbox /workspace/working-folder ./working-folder
 ```
 
 OpenShell inference routing can keep raw model credentials outside the sandbox. When configured, point Pi at the corresponding OpenAI-compatible or Anthropic-compatible endpoint exposed by the gateway.
-
-## Route tools through Gondolin
-
-[Gondolin](https://github.com/earendil-works/gondolin) is a local Linux micro-VM. Its example extension keeps the Pi process and file-based provider credentials on the host while routing the built-in tools and user `!` commands into the VM.
-
-Commands inside the VM inherit the host process environment. Provider keys supplied through environment variables can therefore be visible inside the VM. Do not use this pattern as a credential boundary unless you remove sensitive variables or change the extension's environment handling.
-
-Gondolin requires Node.js 23.6 or newer and QEMU installed through your operating-system package manager.
-
-### Install the extension
-
-From a Pi source checkout:
-
-```bash
-mkdir -p ~/.pi/agent/extensions
-cp -R packages/coding-agent/examples/extensions/gondolin ~/.pi/agent/extensions/gondolin
-cd ~/.pi/agent/extensions/gondolin
-npm install --ignore-scripts
-```
-
-### Start Pi
-
-Run Pi from the working folder you want mounted:
-
-```bash
-cd /path/to/working-folder
-pi -e ~/.pi/agent/extensions/gondolin
-```
-
-The extension mounts the host working folder at `/workspace` in the VM and overrides `read`, `write`, `edit`, `bash`, `grep`, `find`, and `ls`. File changes under `/workspace` write through to the host.
-
-Other extension tools still run on the host unless they explicitly delegate their operations. Review the [Gondolin example](../examples/extensions/gondolin/) before adding tools that could bypass the VM boundary.

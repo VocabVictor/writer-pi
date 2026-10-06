@@ -1,6 +1,6 @@
 # RPC Commands
 
-This reference lists commands accepted on stdin in [RPC mode](rpc.md). Each command and response is one JSON object. Shared message values use the [message types](message-types.md).
+This reference lists commands accepted on stdin in [RPC mode](rpc.md). Each command and response is one JSON object. Shared message values use the [message types](messagetypes.md).
 
 ## Prompting
 
@@ -203,7 +203,7 @@ Response:
 }
 ```
 
-Messages are `AgentMessage` objects (see [Message Types](message-types.md)).
+Messages are `AgentMessage` objects (see [Message Types](messagetypes.md)).
 
 ## Model
 

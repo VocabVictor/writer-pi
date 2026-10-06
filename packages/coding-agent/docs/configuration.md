@@ -20,7 +20,7 @@ The agent directory is shown as `<agent-dir>` below. Set its location with the `
 | `<agent-dir>/APPEND_SYSTEM.md` | Adds instructions to Pi’s system prompt. |
 | `<agent-dir>/extensions/` | User [extensions](extensions.md). |
 | `<agent-dir>/skills/` | User [skills](skills.md) and supporting files. |
-| `<agent-dir>/prompts/` | User [prompt templates](prompt-templates.md) exposed as slash commands. |
+| `<agent-dir>/prompts/` | User [prompt templates](prompttemplates.md) exposed as slash commands. |
 | `<agent-dir>/themes/` | User [theme](themes.md) files. |
 
 ## Project `.pi` directory

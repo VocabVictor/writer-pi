@@ -17,7 +17,7 @@ pi --mode rpc --no-session
 
 Normal CLI options still select the working folder, model, tools, resources, and session behavior. Common choices include `--provider`, `--model`, `--name`, `--no-session`, and `--session-dir`. See [Command Line](cli.md) for the complete, version-specific interface; `pi --help` is authoritative for the installed version.
 
-RPC mode rejects `@file` prompt arguments. Send prompts through the [`prompt`](rpc-commands.md#prompt) command instead.
+RPC mode rejects `@file` prompt arguments. Send prompts through the [`prompt`](rpccommands.md#prompt) command instead.
 
 ## Protocol records
 
@@ -30,7 +30,7 @@ The protocol has four record families:
 | stdout | Session event | Stream run, message, tool, queue, compaction, and retry activity |
 | Both | Extension UI record | Forward supported extension interactions between Pi and the client |
 
-See [RPC Commands](rpc-commands.md), [JSON Event Stream](json.md), and [RPC Extension UI](rpc-extension-ui.md) for the canonical record definitions.
+See [RPC Commands](rpccommands.md), [JSON Event Stream](json.md), and [RPC Extension UI](rpcextensionui.md) for the canonical record definitions.
 
 ### Correlate commands and responses
 
@@ -43,7 +43,7 @@ Every command accepts an optional string `id`. A matching response repeats it:
 
 Use unique IDs whenever more than one command can be outstanding. Command handling is asynchronous, so clients should correlate by ID rather than response order.
 
-Session events generally have no command ID because they describe session activity. `bash_execution_update` is the exception: when the originating [`bash`](rpc-commands.md#bash) command has an ID, its output events repeat that ID.
+Session events generally have no command ID because they describe session activity. `bash_execution_update` is the exception: when the originating [`bash`](rpccommands.md#bash) command has an ID, its output events repeat that ID.
 
 An `extension_ui_response` uses the ID supplied by its `extension_ui_request`. It does not produce a normal command response.
 
@@ -64,7 +64,7 @@ A successful `prompt` response means the prompt was accepted, queued, or handled
 {"id":"req-2","type":"response","command":"prompt","success":true,"data":{"disposition":"started"}}
 ```
 
-`data.disposition` reports what happened to the prompt. If it is `"handled"`, no run started for this prompt, so don't wait for `agent_settled`. See [RPC Commands](rpc-commands.md#prompt) for all values.
+`data.disposition` reports what happened to the prompt. If it is `"handled"`, no run started for this prompt, so don't wait for `agent_settled`. See [RPC Commands](rpccommands.md#prompt) for all values.
 
 Continue consuming [events](json.md) after that response. `agent_end` marks the end of one low-level agent run, but retries, overflow recovery, compaction, steering, or follow-up work can still follow. Wait for `agent_settled` when the client needs to know Pi will not continue automatically.
 
@@ -129,15 +129,15 @@ process.stdin.close()
 process.wait()
 ```
 
-For maintained TypeScript clients, use the checked [RPC client example](../examples/rpc-client.ts). It requires a built Pi CLI because the repository example points to `dist/cli.js`.
+For maintained TypeScript clients, use the checked [RPC client example](../examples/rpcclient.ts). It requires a built Pi CLI because the repository example points to `dist/cli.js`.
 
 ## Reference
 
-- [RPC Commands](rpc-commands.md): every stdin command and response
+- [RPC Commands](rpccommands.md): every stdin command and response
 - [JSON Event Stream](json.md): shared stdout session events and streaming reconstruction
-- [RPC Extension UI](rpc-extension-ui.md): dialogs, notifications, responses, and limitations
-- [Message Types](message-types.md): messages and content blocks used by responses and events
-- [Session File Format](session-format.md): entries returned by session commands
+- [RPC Extension UI](rpcextensionui.md): dialogs, notifications, responses, and limitations
+- [Message Types](messagetypes.md): messages and content blocks used by responses and events
+- [Session File Format](sessionformat.md): entries returned by session commands
 - [`rpc-types.ts`](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/src/modes/rpc/rpc-types.ts): exported TypeScript protocol definitions
 - [`RpcClient`](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/src/modes/rpc/rpc-client.ts): subprocess client implementation
 
@@ -179,7 +179,7 @@ The detailed references formerly on this page now have dedicated pages. These an
 <a id="set_session_name"></a>
 <a id="get_commands"></a>
 
-Command details moved to [RPC Commands](rpc-commands.md).
+Command details moved to [RPC Commands](rpccommands.md).
 
 <a id="message_update-streaming"></a>
 <a id="bash_execution_update"></a>
@@ -190,4 +190,4 @@ Event details moved to [JSON Event Stream](json.md).
 
 <a id="extension-ui-protocol"></a>
 
-Extension interaction details moved to [RPC Extension UI](rpc-extension-ui.md).
+Extension interaction details moved to [RPC Extension UI](rpcextensionui.md).

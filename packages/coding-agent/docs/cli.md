@@ -27,7 +27,7 @@ git diff | pi --print "Review this change"
 pi --mode json "Inspect this repository" > events.jsonl
 ```
 
-With terminal stdin and stdout, Pi opens the terminal UI unless `--print`, `--mode json`, or `--mode rpc` selects another interface. When either stream is redirected and neither JSON nor RPC mode is selected, Pi uses print mode. See [CLI Integration](cli-integration.md) for choosing between interactive, print, JSON, RPC, and SDK integration.
+With terminal stdin and stdout, Pi opens the terminal UI unless `--print`, `--mode json`, or `--mode rpc` selects another interface. When either stream is redirected and neither JSON nor RPC mode is selected, Pi uses print mode. See [CLI Integration](cliintegration.md) for choosing between interactive, print, JSON, RPC, and SDK integration.
 
 | Input | Behavior |
 |---|---|
@@ -111,7 +111,7 @@ Constraints:
 ## Tools
 
 ```sh
-pi --tools read,grep,find,ls --print "Review this project"
+pi --tools read,save_draft,revise_paragraph --print "Draft a reply to this email"
 ```
 
 See [Settings](settings.md#tools) for configuring the default tool selection.
@@ -125,20 +125,20 @@ See [Settings](settings.md#tools) for configuring the default tool selection.
 - `-nt`, `--no-tools`<br>
   Starts with all built-in, extension, and custom tools disabled.
 
-Default enabled tools are `read`, `bash`, `edit`, and `write`, unless `defaultTools` changes them. `--tools` replaces the whole selection, so name every tool you want; `defaultTools` also accepts `+name` and `-name` to change the defaults instead.
+Default enabled tools are `read`, `save_draft`, `revise_paragraph`, `diff_versions`, and `revert_version`, unless `defaultTools` changes them. `--tools` replaces the whole selection, so name every tool you want; `defaultTools` also accepts `+name` and `-name` to change the defaults instead.
 
 | Built-in | Purpose |
 |---|---|
 | `read` | Read text files and supported images |
-| `bash` | Run shell commands |
-| `powershell` | Run PowerShell commands on Windows |
-| `edit` | Apply exact text replacements to an existing file |
-| `write` | Create or overwrite a file |
-| `grep` | Search file contents |
-| `find` | Find paths using glob patterns |
-| `ls` | List directory contents |
+| `save_draft` | Save the full document as a new draft version, never overwriting an earlier one |
+| `revise_paragraph` | Replace one paragraph of the current document, used in revision rounds |
+| `diff_versions` | Show the line-level difference between two draft versions |
+| `revert_version` | Switch back to an earlier version by saving its content as a new version |
+| `update_context` | Update the genre's persistent context files; not enabled by default |
 
-Built-in extensions add two more tools. They are off by default; the MCP extension turns them on when an MCP server needs them (see [MCP](mcp.md#exposure)). To enable them yourself, name them in `--tools` or `defaultTools`.
+Draft versions are saved as `drafts/draft-NNN.md` and never overwritten; an optional `save_draft` note is stored with the version, and the writing scaffold is created when it is the first write in a directory. `diff_versions` and `revert_version` accept `1`, `001`, or `draft-001`; `revert_version` saves the earlier content as a new version, so history files are kept.
+
+Built-in extensions add two more tools. They are off by default; the MCP extension turns them on when an MCP server needs them (see [MCP](mcp.md#control-tool-exposure)). To enable them yourself, name them in `--tools` or `defaultTools`.
 
 | Built-in extension | Purpose |
 |---|---|
@@ -155,10 +155,10 @@ To turn on `codemode` for every session, add it to the default tools in `~/.pi/a
 }
 ```
 
-This keeps `read`, `bash`, `edit`, and `write` and adds `codemode`. For one invocation, list every tool, since `--tools` replaces the selection:
+This keeps the default tools and adds `codemode`. For one invocation, list every tool, since `--tools` replaces the selection:
 
 ```sh
-pi --tools read,bash,edit,write,codemode
+pi --tools read,save_draft,revise_paragraph,diff_versions,revert_version,codemode
 ```
 
 Codemode is useful without MCP: scripts can run several tool calls in parallel, filter large output before it reaches the model, call classifier models such as TypeSafe's Jev through `models.classify()` (see [Classifier models](models.md#use-classifier-models)), and generate images through `models.generateImages()` (see [Image models](models.md#use-image-models)).
@@ -212,7 +212,7 @@ Resource paths apply only to the current process. Relative paths resolve from th
 pi --append-system-prompt ./instructions.md
 ```
 
-See [Configuration](configuration.md) for saved configuration, [Security](security.md#understand-project-trust) for project trust, and [Environment Variables](environment-variables.md) for process controls.
+See [Configuration](configuration.md) for saved configuration, [Security](security.md#understand-project-trust) for project trust, and [Environment Variables](environmentvariables.md) for process controls.
 
 - `--system-prompt <text|path>`<br>
   Replaces the default system prompt with text or the contents of an existing file.
@@ -314,6 +314,6 @@ These commands work outside a session, so agents can run them through `bash`. Se
 | `pi mcp login <server> [--timeout <seconds>]` | Sign in to an OAuth server: open the authorization page and wait for the browser (default 300 seconds); a terminal also accepts the pasted redirect URL |
 | `pi mcp logout <server>` | Delete the stored OAuth credentials of a server |
 
-`add` and `remove` change `~/.pi/agent/mcp.json`, or `.pi/mcp.json` in the current directory with `--local` (`-l`). `add` also takes `--exposure <mode>` (see [Exposure](mcp.md#exposure)) and `--description <text>` and does not connect; run `pi mcp list` to check the server.
+`add` and `remove` change `~/.pi/agent/mcp.json`, or `.pi/mcp.json` in the current directory with `--local` (`-l`). `add` also takes `--exposure <mode>` (see [Control tool exposure](mcp.md#control-tool-exposure)) and `--description <text>` and does not connect; run `pi mcp list` to check the server.
 
 Project `.pi/mcp.json` files are only read for projects that are already trusted.
