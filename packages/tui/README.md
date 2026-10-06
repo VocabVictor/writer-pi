@@ -29,7 +29,7 @@ const tui: TUI = new TuiMainScreen(terminal);
 // Add components
 tui.addChild(new Text("Welcome to my app!"));
 
-import { defaultEditorTheme as editorTheme } from './test/test-themes.ts';
+import { defaultEditorTheme as editorTheme } from './test/themes.ts';
 const editor = new Editor(tui, editorTheme);
 editor.onSubmit = (text) => {
   console.log("Submitted:", text);
@@ -914,7 +914,7 @@ class CachedComponent implements Component {
 
 ## Example
 
-See `test/chat-simple.ts` for a complete chat interface example with:
+See `test/chatdemo.ts` for a complete chat interface example with:
 - Markdown messages with custom background colors
 - Loading spinner during responses
 - Editor with autocomplete and slash commands
@@ -922,7 +922,7 @@ See `test/chat-simple.ts` for a complete chat interface example with:
 
 Run it:
 ```bash
-node test/chat-simple.ts
+node test/chatdemo.ts
 ```
 
 ## Development
@@ -935,7 +935,7 @@ npm install
 npm run check
 
 # Run the demo
-node test/chat-simple.ts
+node test/chatdemo.ts
 ```
 
 ### Debug logging
@@ -943,5 +943,5 @@ node test/chat-simple.ts
 Set `PI_TUI_WRITE_LOG` to capture the raw ANSI stream written to stdout.
 
 ```bash
-PI_TUI_WRITE_LOG=/tmp/tui-ansi.log node test/chat-simple.ts
+PI_TUI_WRITE_LOG=/tmp/tui-ansi.log node test/chatdemo.ts
 ```

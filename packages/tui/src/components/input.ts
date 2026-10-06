@@ -1,10 +1,10 @@
 import { getKeybindings } from "../keybindings.ts";
 import { decodeKittyPrintable } from "../keys.ts";
-import { KillRing } from "../kill-ring.ts";
+import { KillRing } from "../killring.ts";
 import { type Component, CURSOR_MARKER, type Focusable, type TuiMouseEvent, type TuiMouseEventResult } from "../tui.ts";
-import { UndoStack } from "../undo-stack.ts";
+import { UndoStack } from "../undostack.ts";
 import { getGraphemeSegmenter, isWhitespaceChar, sliceByColumn, truncateToWidth, visibleWidth } from "../utils.ts";
-import { findWordBackward, findWordForward } from "../word-navigation.ts";
+import { findWordBackward, findWordForward } from "../wordnavigation.ts";
 
 const segmenter = getGraphemeSegmenter();
 

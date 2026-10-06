@@ -14,7 +14,7 @@
  * KIND, EXPRESS OR IMPLIED.
  */
 
-import type { RgbColor } from "./terminal-colors.ts";
+import type { RgbColor } from "./terminalcolors.ts";
 
 type Vector = [number, number, number];
 type Matrix = [Vector, Vector, Vector];

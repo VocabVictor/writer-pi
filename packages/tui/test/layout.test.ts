@@ -1,11 +1,11 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
-import { HStack } from "../src/components/h-stack.ts";
-import { ScrollView } from "../src/components/scroll-view.ts";
+import { HStack } from "../src/components/hstack.ts";
+import { ScrollView } from "../src/components/scrollview.ts";
 import { Text } from "../src/components/text.ts";
-import { VStack } from "../src/components/v-stack.ts";
+import { VStack } from "../src/components/vstack.ts";
 import { renderLayoutFrame } from "../src/layout.ts";
-import { encodeKitty, registerKittyImageMetadata } from "../src/terminal-image.ts";
+import { encodeKitty, registerKittyImageMetadata } from "../src/terminalimage.ts";
 import { stripTerminalSequences } from "../src/utils.ts";
 
 function visibleLines(lines: string[]): string[] {

@@ -11,8 +11,8 @@ import {
 	type RgbColor,
 	type TerminalColorScheme,
 	type TerminalColors,
-} from "./terminal-colors.ts";
-import { getCapabilities, isImageLine, setCellDimensions } from "./terminal-image.ts";
+} from "./terminalcolors.ts";
+import { getCapabilities, isImageLine, setCellDimensions } from "./terminalimage.ts";
 import { extractSegments, normalizeTerminalOutput, sliceByColumn, sliceWithWidth, visibleWidth } from "./utils.ts";
 
 /**

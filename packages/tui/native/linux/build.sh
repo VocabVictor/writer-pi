@@ -55,7 +55,7 @@ common_flags=(
 
 x11_output="$build_dir/linux-platform-x11.node"
 "$compiler" "${common_flags[@]}" \
-    "$script_dir/src/linux-platform-x11.c" \
+    "$script_dir/src/linuxplatformx11.c" \
     -lxcb \
     -o "$x11_output"
 

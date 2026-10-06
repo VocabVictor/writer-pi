@@ -1,7 +1,7 @@
 import type { AutocompleteProvider, AutocompleteSuggestions } from "../autocomplete.ts";
 import { getKeybindings } from "../keybindings.ts";
 import { decodePrintableKey, matchesKey } from "../keys.ts";
-import { KillRing } from "../kill-ring.ts";
+import { KillRing } from "../killring.ts";
 import {
 	type Component,
 	CURSOR_MARKER,
@@ -10,7 +10,7 @@ import {
 	type TuiMouseEvent,
 	type TuiMouseEventResult,
 } from "../tui.ts";
-import { UndoStack } from "../undo-stack.ts";
+import { UndoStack } from "../undostack.ts";
 import {
 	autocompleteBoundaryRegex,
 	autocompleteSeparatorRegex,
@@ -21,8 +21,8 @@ import {
 	sliceByColumn,
 	visibleWidth,
 } from "../utils.ts";
-import { findWordBackward, findWordForward } from "../word-navigation.ts";
-import { SelectList, type SelectListLayoutOptions, type SelectListTheme } from "./select-list.ts";
+import { findWordBackward, findWordForward } from "../wordnavigation.ts";
+import { SelectList, type SelectListLayoutOptions, type SelectListTheme } from "./selectlist.ts";
 
 const graphemeSegmenter = getGraphemeSegmenter();
 const wordSegmenter = getWordSegmenter();

@@ -1,6 +1,7 @@
 // Core TUI interfaces and classes
 
 export { Marked, type Token, type Tokens } from "marked";
+export { TuiAltScreen, type TuiAltScreenOptions } from "./altscreen.ts";
 // Autocomplete support
 export {
 	type AutocompleteItem,
@@ -38,40 +39,40 @@ export {
 } from "./colors.ts";
 // Components
 export { Box } from "./components/box.ts";
-export { CancellableLoader } from "./components/cancellable-loader.ts";
+export { CancellableLoader } from "./components/cancellable.ts";
 export { Editor, type EditorOptions, type EditorTheme } from "./components/editor.ts";
-export { HStack } from "./components/h-stack.ts";
+export { HStack } from "./components/hstack.ts";
 export { Image, type ImageOptions, type ImageTheme } from "./components/image.ts";
 export { Input } from "./components/input.ts";
 export { Loader, type LoaderIndicatorOptions } from "./components/loader.ts";
 export { type DefaultTextStyle, Markdown, type MarkdownOptions, type MarkdownTheme } from "./components/markdown.ts";
-export { MouseRegion, type MouseRegionHandler } from "./components/mouse-region.ts";
+export { MouseRegion, type MouseRegionHandler } from "./components/mouseregion.ts";
 export {
 	ScrollView,
 	type ScrollViewOptions,
 	type ScrollViewScrollbar,
 	type ScrollViewScrollToOptions,
-} from "./components/scroll-view.ts";
+} from "./components/scrollview.ts";
 export {
 	type SelectItem,
 	SelectList,
 	type SelectListLayoutOptions,
 	type SelectListTheme,
 	type SelectListTruncatePrimaryContext,
-} from "./components/select-list.ts";
-export { type SettingItem, SettingsList, type SettingsListTheme } from "./components/settings-list.ts";
+} from "./components/selectlist.ts";
+export { type SettingItem, SettingsList, type SettingsListTheme } from "./components/settingslist.ts";
 export { Spacer } from "./components/spacer.ts";
 export { Text } from "./components/text.ts";
-export { TruncatedText } from "./components/truncated-text.ts";
+export { TruncatedText } from "./components/truncatedtext.ts";
 export {
 	type StackChild,
 	type StackEntry,
 	type StackEntryOptions,
 	type StackOptions,
 	VStack,
-} from "./components/v-stack.ts";
+} from "./components/vstack.ts";
 // Editor component interface (for custom editors)
-export type { EditorComponent } from "./editor-component.ts";
+export type { EditorComponent } from "./editorcomponent.ts";
 // Fuzzy matching
 export { type FuzzyMatch, fuzzyFilter, fuzzyMatch } from "./fuzzy.ts";
 // Keybindings
@@ -102,11 +103,12 @@ export {
 } from "./keys.ts";
 // LaTeX rendering
 export { type RenderLatexOptions, renderLatex } from "./latex.ts";
+export { TuiMainScreen, type TuiMainScreenRenderState } from "./mainscreen.ts";
 // Native platform integration
-export { getNativeClipboard, type NativeClipboard } from "./native-platform.ts";
+export { getNativeClipboard, type NativeClipboard } from "./nativeplatform.ts";
 export { oklabToOkhslLightness } from "./oklab.ts";
 // Input buffering for batch splitting
-export { StdinBuffer, type StdinBufferEventMap, type StdinBufferOptions } from "./stdin-buffer.ts";
+export { StdinBuffer, type StdinBufferEventMap, type StdinBufferOptions } from "./stdinbuffer.ts";
 // Terminal interface and implementations
 export { isAppleTerminalSession, ProcessTerminal, type Terminal } from "./terminal.ts";
 // Terminal colors
@@ -115,7 +117,7 @@ export {
 	type RgbColor,
 	type TerminalColorScheme,
 	type TerminalColors,
-} from "./terminal-colors.ts";
+} from "./terminalcolors.ts";
 // Terminal image support
 export {
 	allocateImageId,
@@ -145,7 +147,7 @@ export {
 	setCapabilityOverrides,
 	setCellDimensions,
 	type TerminalCapabilities,
-} from "./terminal-image.ts";
+} from "./terminalimage.ts";
 export {
 	type Component,
 	Container,
@@ -172,8 +174,6 @@ export {
 	type TuiStopOptions,
 	type ViewportTUI,
 } from "./tui.ts";
-export { TuiAltScreen, type TuiAltScreenOptions } from "./tui-alt-screen.ts";
-export { TuiMainScreen, type TuiMainScreenRenderState } from "./tui-main-screen.ts";
 // Utilities
 export {
 	getOsc8LinkAtColumn,
@@ -183,4 +183,4 @@ export {
 	visibleWidth,
 	wrapTextWithAnsi,
 } from "./utils.ts";
-export type { WheelScrollLines } from "./wheel-scroll.ts";
+export type { WheelScrollLines } from "./wheelscroll.ts";

@@ -1,7 +1,7 @@
-import type { ScrollView } from "./components/scroll-view.ts";
+import type { ScrollView } from "./components/scrollview.ts";
 import { allocateStackSizes, visibleStackEntries } from "./components/stack.ts";
-import { getLayoutNode } from "./layout-node.ts";
-import { cropKittyImageLine, getKittyImageMetadata, isImageLine } from "./terminal-image.ts";
+import { getLayoutNode } from "./layoutnode.ts";
+import { cropKittyImageLine, getKittyImageMetadata, isImageLine } from "./terminalimage.ts";
 import { type Component, CURSOR_MARKER, compositeTuiLine } from "./tui.ts";
 import {
 	extractAnsiCode,

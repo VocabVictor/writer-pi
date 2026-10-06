@@ -6,7 +6,7 @@ import {
 	type ImageDimensions,
 	imageFallback,
 	renderImage,
-} from "../terminal-image.ts";
+} from "../terminalimage.ts";
 import type { Component } from "../tui.ts";
 import { truncateToWidth } from "../utils.ts";
 

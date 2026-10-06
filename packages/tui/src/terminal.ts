@@ -1,9 +1,9 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import { setKittyProtocolActive } from "./keys.ts";
-import { isNativeModifierPressed } from "./native-modifiers.ts";
-import { getNativePlatformHelper } from "./native-platform.ts";
-import { StdinBuffer } from "./stdin-buffer.ts";
+import { isNativeModifierPressed } from "./nativemodifiers.ts";
+import { getNativePlatformHelper } from "./nativeplatform.ts";
+import { StdinBuffer } from "./stdinbuffer.ts";
 
 const TERMINAL_PROGRESS_KEEPALIVE_MS = 1000;
 const TERMINAL_PROGRESS_ACTIVE_SEQUENCE = "\x1b]9;4;3\x07";

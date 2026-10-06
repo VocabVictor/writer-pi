@@ -3,7 +3,7 @@
 set -euo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source_file="$script_dir/src/darwin-platform.m"
+source_file="$script_dir/src/darwinplatform.m"
 
 if [[ -n "${CC:-}" ]]; then
     compiler="$CC"
