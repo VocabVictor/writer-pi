@@ -43,8 +43,8 @@ examples/*/reviews/
 examples/*/sections/
 examples/*/state.json
 examples/*/locked.md
-examples/*/brief.md
-!examples/email/brief.md
-!examples/officialdoc/brief.md
-!examples/ecommerce/brief.md
-!examples/poetry/brief.md
+# brief.md ships (writing requirements shown with the example)
+!examples/*/brief.md
+# article.md is the finished product of an example run; it ships.
+# drafts/, reviews/, state.json, locked.md above stay ignored (internal run artifacts).
+!examples/*/article.md
