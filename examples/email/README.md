@@ -3,7 +3,7 @@
 在这个目录启动 writer-pi：
 
 ```bash
-cd examples/writing/email
+cd examples/email
 writer-pi
 ```
 

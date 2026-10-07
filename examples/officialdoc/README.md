@@ -3,7 +3,7 @@
 在这个目录启动 writer-pi：
 
 ```bash
-cd examples/writing/officialdoc
+cd examples/officialdoc
 writer-pi
 ```
 
