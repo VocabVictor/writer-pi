@@ -1,0 +1,50 @@
+{
+	"version": 1,
+	"createdAt": "2026-10-07T09:09:28.374Z",
+	"round": 1,
+	"draftPath": "drafts/draft-001.md",
+	"programChecks": {
+		"length": {
+			"wordCount": 234,
+			"cjkChars": 234,
+			"kanaChars": 0,
+			"hangulChars": 0,
+			"latinWords": 0,
+			"digitGroups": 0,
+			"totalCharsNoWhitespace": 268,
+			"target": {
+				"min": 250,
+				"max": 400,
+				"raw": "长度:300 字左右(250-400 字之间)"
+			},
+			"withinTarget": false
+		},
+		"bannedWords": [],
+		"duplicateParagraphs": [],
+		"duplicateSentences": [],
+		"lockedMissing": [],
+		"citations": [],
+		"maxParagraphChars": 0,
+		"longParagraphs": [],
+		"nearDuplicateSentences": [],
+		"uniformParagraphRuns": [],
+		"pendingMarkers": [],
+		"aitone": {
+			"score": 0,
+			"level": "LOW",
+			"flagged": false,
+			"hits": [],
+			"toolTraces": []
+		}
+	},
+	"issues": [
+		{
+			"kind": "other",
+			"paragraph": 1,
+			"quote": "梧桐巷口有家旧书店，叫拾遗书屋，门脸只有两米宽。",
+			"reason": "全文实际 234 字（不含标点），低于 brief 要求的 250-400 字下限",
+			"suggestion": "在素材已有事实范围内扩写约 30-60 字：如展开第二段对《读书》杂志、课桌收银台的观察，或在第三段周三闭店、常客处补一句亲眼所见的场景，不添加新事实"
+		}
+	],
+	"validationWarnings": []
+}

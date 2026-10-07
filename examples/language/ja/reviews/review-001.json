@@ -1,0 +1,51 @@
+{
+	"version": 1,
+	"createdAt": "2026-10-07T09:13:22.251Z",
+	"round": 1,
+	"draftPath": "drafts/draft-001.md",
+	"programChecks": {
+		"length": {
+			"wordCount": 254,
+			"cjkChars": 95,
+			"kanaChars": 159,
+			"hangulChars": 0,
+			"latinWords": 0,
+			"digitGroups": 0,
+			"totalCharsNoWhitespace": 276,
+			"target": {
+				"min": 240,
+				"max": 360,
+				"raw": "長さ:300 字程度(250〜400 字)"
+			},
+			"withinTarget": true
+		},
+		"bannedWords": [],
+		"duplicateParagraphs": [],
+		"duplicateSentences": [],
+		"lockedMissing": [],
+		"citations": [],
+		"maxParagraphChars": 0,
+		"longParagraphs": [],
+		"nearDuplicateSentences": [],
+		"uniformParagraphRuns": [],
+		"pendingMarkers": [],
+		"aitone": {
+			"score": 0,
+			"level": "LOW",
+			"flagged": false,
+			"hits": [],
+			"toolTraces": []
+		}
+	},
+	"issues": [
+		{
+			"kind": "meaning_drift",
+			"paragraph": 1,
+			"quote": "四十年前から住み込みで働いていた人だ。",
+			"reason": "素材は「四十年前に住み込みで働いていた人」。原稿の「から」は40年間住み込みで働き続けたという継続の主張になり、素材が述べていない事実を追加している。",
+			"suggestion": "四十年前に住み込みで働いていた人だ。",
+			"source_quote": "マスターは三人目で、創業者の息子ではなく、四十年前に住み込みで働いていた人。"
+		}
+	],
+	"validationWarnings": []
+}

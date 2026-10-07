@@ -1,0 +1,18 @@
+{
+	"version": 1,
+	"stage": "idle",
+	"mode": "draft",
+	"currentDraft": "drafts/draft-002.md",
+	"draftCount": 2,
+	"reviewCount": 2,
+	"revisionRounds": 1,
+	"genre": "email",
+	"voice": null,
+	"format": null,
+	"lastRequest": "写一篇关于巷口旧书店的城市随笔",
+	"updatedAt": "2026-10-07T09:14:10.390Z",
+	"draftNotes": {
+		"1": "初稿：巷口旧书店随笔，约290字",
+		"2": "第 1 轮修改"
+	}
+}

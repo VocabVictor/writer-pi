@@ -185,11 +185,11 @@ state.json   当前阶段、当前版本、版本计数等
 
 三个自足的示例项目（内容为演示编写，不含任何私人数据），见 [examples/](examples/)：
 
-1. **[email](examples/email/)** — 根据素材写一封拒绝聚餐邀请的邮件（brief 指定 200 字以内、禁用词）：
-   `cd examples/email && writer-pi`，然后输入 `/draft 写一封回复部门聚餐邀请的邮件`
-2. **[revise](examples/revise/)** — 修改一段个人表达、保留立场与语气（语义检查应拦截"这段经历让我学会尊重自己的边界"式成长叙事）：
+1. **[email](examples/genre/email/)** — 根据素材写一封拒绝聚餐邀请的邮件（brief 指定 200 字以内、禁用词）：
+   `cd examples/genre/email && writer-pi`，然后输入 `/draft 写一封回复部门聚餐邀请的邮件`
+2. **[revise](examples/genre/revise/)** — 修改一段个人表达、保留立场与语气（语义检查应拦截"这段经历让我学会尊重自己的边界"式成长叙事）：
    `/revise sources/original-draft.md 把语气改得更平实一些，删掉重复的表达`
-3. **[voice](examples/voice/)** — 参照两段自写文风样本写一篇短文：
+3. **[voice](examples/genre/voice/)** — 参照两段自写文风样本写一篇短文：
    `/voice 写一段下班路上买到最后一份糖炒栗子的小事`
 
 ## 检查机制

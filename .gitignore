@@ -38,11 +38,16 @@ plans/
 # writer-pi: per-project run artifacts (created by the writing flow);
 # sections/ is the longform outline/section workspace, reset on each run;
 # voice/ is NOT ignored — voice ships a style sample there
-examples/*/drafts/
-examples/*/reviews/
-examples/*/sections/
-examples/*/state.json
-examples/*/locked.md
+examples/genre/*/drafts/
+examples/genre/*/reviews/
+examples/genre/*/sections/
+examples/genre/*/state.json
+examples/genre/*/locked.md
+examples/length/*/drafts/
+examples/length/*/reviews/
+examples/length/*/sections/
+examples/length/*/state.json
+examples/length/*/locked.md
 # brief.md ships (writing requirements shown with the example)
 !examples/*/brief.md
 # article.md is the finished product of an example run; it ships.

@@ -1,0 +1,38 @@
+{
+	"version": 1,
+	"createdAt": "2026-10-07T09:31:39.485Z",
+	"round": 2,
+	"draftPath": "drafts/draft-002.md",
+	"programChecks": {
+		"length": {
+			"wordCount": 286,
+			"cjkChars": 0,
+			"kanaChars": 0,
+			"hangulChars": 0,
+			"latinWords": 285,
+			"digitGroups": 1,
+			"totalCharsNoWhitespace": 1304,
+			"target": null,
+			"withinTarget": null
+		},
+		"bannedWords": [],
+		"duplicateParagraphs": [],
+		"duplicateSentences": [],
+		"lockedMissing": [],
+		"citations": [],
+		"maxParagraphChars": 0,
+		"longParagraphs": [],
+		"nearDuplicateSentences": [],
+		"uniformParagraphRuns": [],
+		"pendingMarkers": [],
+		"aitone": {
+			"score": 0,
+			"level": "LOW",
+			"flagged": false,
+			"hits": [],
+			"toolTraces": []
+		}
+	},
+	"issues": [],
+	"validationWarnings": []
+}

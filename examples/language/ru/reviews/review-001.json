@@ -1,0 +1,47 @@
+{
+	"version": 1,
+	"createdAt": "2026-10-07T09:32:03.091Z",
+	"round": 1,
+	"draftPath": "drafts/draft-001.md",
+	"programChecks": {
+		"length": {
+			"wordCount": 273,
+			"cjkChars": 0,
+			"kanaChars": 0,
+			"hangulChars": 0,
+			"latinWords": 273,
+			"digitGroups": 0,
+			"totalCharsNoWhitespace": 1379,
+			"target": null,
+			"withinTarget": null
+		},
+		"bannedWords": [],
+		"duplicateParagraphs": [],
+		"duplicateSentences": [],
+		"lockedMissing": [],
+		"citations": [],
+		"maxParagraphChars": 0,
+		"longParagraphs": [],
+		"nearDuplicateSentences": [],
+		"uniformParagraphRuns": [],
+		"pendingMarkers": [],
+		"aitone": {
+			"score": 0,
+			"level": "LOW",
+			"flagged": false,
+			"hits": [],
+			"toolTraces": []
+		}
+	},
+	"issues": [
+		{
+			"kind": "meaning_drift",
+			"paragraph": 3,
+			"quote": "работает на этом маршруте двадцать шесть лет и зовёт пассажиров по именам",
+			"reason": "素材原文是「знает пассажиров по именам」（她认识乘客），文稿改成「зовёт…по именам」（她主动叫乘客的名字），把「认识」强化成了主动称呼的行为；下一句「Меня она тоже зовёт по имени」也建立在这个改动上。属于轻微的事实偏移。",
+			"suggestion": "改为素材原句表述：「…двадцать шесть лет и знает пассажиров по именам」；其后一句可改为「Меня она тоже узнаёт」或删除，避免延续这层添加。",
+			"source_quote": "Вагоновожатая Галина Петровна работает на этом маршруте двадцать шесть лет и знает пассажиров по именам."
+		}
+	],
+	"validationWarnings": []
+}
