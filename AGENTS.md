@@ -92,7 +92,7 @@ When reviewing PRs:
 
 When creating issues:
 
-- Add `pkg:*` labels for affected packages (`pkg:agent`, `pkg:ai`, `pkg:chord`, `pkg:client`, `pkg:codemode`, `pkg:coding-agent`, `pkg:durable`, `pkg:evals`, `pkg:mcp`, `pkg:protocol`, `pkg:server`, `pkg:telemetry`, `pkg:tui`); use all that apply.
+- Add `pkg:*` labels for affected packages (`pkg:agent`, `pkg:ai`, `pkg:chord`, `pkg:client`, `pkg:codemode`, `pkg:coding-agent`, `pkg:durable`, `pkg:evals`, `pkg:mcp`, `pkg:protocol`, `pkg:server`, `pkg:tui`); use all that apply.
 
 When posting issue/PR comments:
 
