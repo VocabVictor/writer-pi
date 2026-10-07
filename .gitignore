@@ -43,6 +43,11 @@ examples/genre/*/reviews/
 examples/genre/*/sections/
 examples/genre/*/state.json
 examples/genre/*/locked.md
+examples/language/*/drafts/
+examples/language/*/reviews/
+examples/language/*/sections/
+examples/language/*/state.json
+examples/language/*/locked.md
 examples/length/*/drafts/
 examples/length/*/reviews/
 examples/length/*/sections/
