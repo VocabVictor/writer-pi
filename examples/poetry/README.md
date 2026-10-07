@@ -17,3 +17,5 @@ brief.md 已声明体裁 `poetry`（诗歌），sources/theme.md 是意象素材
 是文风样本。诗歌体裁关闭了程序重复检查（重复与碎句可能是有意的选择），检查以
 语义审查为主：只有当重复明显破坏整首节奏时才报告。drafts/ 下是版本文件，
 reviews/ 下是检查意见。
+
+article.md 是该示例成品，随仓库入库；drafts/、reviews/ 等运行产物被 .gitignore 忽略。

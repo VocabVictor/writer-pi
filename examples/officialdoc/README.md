@@ -17,3 +17,5 @@ brief.md 已声明体裁 `official-doc`（公文），sources/facts.md 是放假
 安全要求等事实。流程会自动进行：拟框架 → 起草 → 保存初稿 → 程序检查 → 语义检查 →
 （最多两轮）局部修改，结束后在 drafts/ 下可以看到版本文件，reviews/ 下是检查意见。
 公文的一切事实必须可追溯到 sources/，材料不足时以【待补：…】标记。
+
+article.md 是该示例成品，随仓库入库；drafts/、reviews/ 等运行产物被 .gitignore 忽略。

@@ -18,3 +18,5 @@ writer-pi
 "这段经历让我学会尊重自己的边界"这类原文没有的成长叙事，语义检查应报出
 `meaning_drift` 或 `unsourced_addition`（实际效果取决于所用模型，见 README 的
 限制说明）。
+
+article.md 是该示例成品，随仓库入库；drafts/、reviews/ 等运行产物被 .gitignore 忽略。
